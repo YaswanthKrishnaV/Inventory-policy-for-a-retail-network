@@ -61,7 +61,7 @@ sampler:
   thin: 1
   seed: 20240115
   target_accept: 0.3
-  robustness: {chains: 2, warmup: 800, draws: 600}   # weekly-FE / no-sentiment / no-organic checks (runtime)
+  robustness: {chains: 4, warmup: 800, draws: 600}   # weekly-FE / no-sentiment / no-organic checks
 
 roi:
   window_weeks: 52              # average ROI over the last 52 training weeks

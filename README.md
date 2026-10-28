@@ -20,6 +20,9 @@ python -m pytest -q tests                                      # exact-algebra t
 python -m project_b.recovery                                   # sampler recovers known ROIs
 ```
 
+Runtime: ~22 min end to end on a 2-core machine (faster on a laptop); `--reuse-fits` regenerates
+every output from cached posteriors in under a minute.
+
 ## Outputs
 | file | content |
 |---|---|

@@ -1,0 +1,6 @@
+/home/claude/repo_b/project_b/src/model.py:160: RuntimeWarning: divide by zero encountered in log1p
+  return stats.beta.logpdf(a, self.a_a, self.a_b) + np.log(a) + np.log1p(-a)
+/home/claude/repo_b/project_b/src/model.py:160: RuntimeWarning: divide by zero encountered in log1p
+  return stats.beta.logpdf(a, self.a_a, self.a_b) + np.log(a) + np.log1p(-a)
+328s worst: [('ec[Organic]', 1.042, 132), ('ec[Channel1]', 1.039, 130), ('ec[Channel0]', 1.032, 168), ('alpha[Organic]', 1.031, 184), ('eta[Channel0]', 1.024, 200), ('beta_org', 1.024, 301)]
+min ESS 129.52553561735647  ROI-param means [1.29 1.09 1.26 1.   1.7 ]

@@ -24,7 +24,7 @@ seasonality + **geo-specific control effects** + promo + per channel a geo-poole
 Hill(adstock(spend)). Priors start from Meridian's published defaults (ROI ~ LogNormal(0.2, 0.9),
 Hill slope 1, half-saturation ~ TruncNormal(0.8, 0.8), adstock decay ~ U(0, 1), 8-week lag) and
 are framed on ROI, which a CMO can reason about. The prior-predictive check gives media a median
-22% share of conversions (12–44%) before seeing the data [B-A06].
+24% share of conversions (13–59%) before seeing the data [B-A06, B-A11].
 - *Geo controls instead of shared:* with one shared coefficient, 11–18 of 40 geos got negative
   media effects; tighter pooling did not fix it; geo-specific controls (as Meridian does) did,
   and improved fit [B-A07].
@@ -41,8 +41,8 @@ allows own code. Given the 12 curve parameters, every other coefficient is linea
 is integrated out exactly for the Metropolis steps and drawn exactly afterwards; the arrowhead
 structure (40 geo blocks + shared block) makes this ~5 ms per step. Each channel's decay,
 saturation and ROI move together in one adaptive joint proposal. **Validated** three ways: the
-algebra matches brute-force matrices; known ROIs are recovered from simulated data (9/10 inside
-their 90% intervals); R-hat / ESS reported for every model. *Rejected:* Meridian / PyMC / NumPyro
+algebra matches brute-force matrices; known ROIs are recovered from simulated data (19/20 inside
+their 90% intervals over two rounds); R-hat / ESS reported for every model (main ≤ 1.039). *Rejected:* Meridian / PyMC / NumPyro
 (not installable here — a PyMC cross-check is possible on a laptop); point-estimate MMM (Robyn-style
 ridge) — no honest intervals.
 
@@ -70,3 +70,18 @@ a bound. Uncertainty is reported for the allocation's revenue and for its uplift
 scaled to the budget". The next experiment targets the channel with the highest expected value of
 partial perfect information (money lost by not knowing its curve), with power by simulation on the
 model's own residuals and a difference-in-differences read-out.
+
+## 8. Results and what they mean [B-A11, B-D09]
+| channel | ROI | marginal ROI | 18M plan |
+|---|---|---|---|
+| Ch0 | 1.30 [0.29, 2.97] | 0.64 [0.12, 1.46] | −5% |
+| Ch1 | 1.03 [0.31, 2.27] | 0.54 [0.14, 1.17] | −30% |
+| Ch2 | 1.20 [0.46, 2.21] | 0.71 [0.20, 1.41] | −15% |
+| Ch3 | 0.94 [0.38, 1.71] | 0.51 [0.20, 0.95] | −30% |
+| Ch4 | 1.62 [0.36, 3.35] | 0.77 [0.16, 1.47] | +23% |
+
+Every channel's marginal ROI is below 1, so the robust decision is the cut itself; the re-mix adds
++0.32M [−1.09, +1.76] (P = 0.63) over a uniform cut. Hold-out: national WAPE 6.3% (bias −6%), 90%
+coverage 0.85. Calibration with the vendor's test changes the plan by ≤ 0.38M per channel. The
+most valuable uncertainty (Ch0 ≈ Ch4, ~0.34M each) is not worth a feasible geo test (best design:
+32% power for ~2M forgone spend), so we recommend gradual monitored reallocation instead.

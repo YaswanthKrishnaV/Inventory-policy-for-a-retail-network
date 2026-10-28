@@ -113,3 +113,31 @@ SLSQP failed on the piecewise-linear interpolated response curves. The curves ar
 4. Weekly-fixed-effects fit took 56 min: the 145×145 shared-block cross-products were recomputed on every likelihood call though they only change with σ. Cached (`linear.shared_terms`): 13 ms per call instead of tens.
 5. No-sentiment sensitivity did not converge: robustness fits now 2 × 800 + 600.
 6. Added `--reuse-fits` (regenerate all outputs from cached posteriors without refitting).
+
+## 2026-10-29 — Final run (18 min with cached main fits; 22 min from scratch on 2 cores)
+
+### B-A11 · Final results (`reports/results.md`, hold-out 2023-10-23 → 2024-01-15)
+| channel | ROI (52w) | marginal ROI | P(ROI > 1) | 18M plan |
+|---|---|---|---|---|
+| Channel0 | 1.30 [0.29, 2.97] | 0.64 [0.12, 1.46] | 0.55 | 3.61M (−5%) |
+| Channel1 | 1.03 [0.31, 2.27] | 0.54 [0.14, 1.17] | 0.40 | 2.24M (−30%) |
+| Channel2 | 1.20 [0.46, 2.21] | 0.71 [0.20, 1.41] | 0.55 | 1.23M (−15%) |
+| Channel3 | 0.94 [0.38, 1.71] | 0.51 [0.20, 0.95] | 0.36 | 5.56M (−30%) |
+| Channel4 | 1.62 [0.36, 3.35] | 0.77 [0.16, 1.47] | 0.73 | 5.36M (+23%) |
+- 18M: incremental revenue 23.03M [14.57, 33.05]; uplift vs today's mix scaled to 18M **+316k [−1.09M, +1.76M]**, P(> 0) 0.63. 24M: 26.77M [17.38, 38.41] (extra 6M buys ~3.7M). 12M relaxed: 18.12M; ±30% floor (14.54M): 20.03M.
+- Hold-out: national WAPE 6.3%, bias −6.2%, 90% coverage 0.85, R² −1.46 (weekly variance small; level under-forecast in Dec–Jan); geo WAPE 21.9%, R² 0.73, coverage 0.86.
+- Variants agree on direction: weekly fixed effects and no-organic within ~0.3 of the main ROIs; national centres similar with wider intervals for Ch2/Ch3; without sentiment Channel3 drops to 0.26 (that fit mixes poorly, R-hat 1.145 — indicative only).
+- Experiment: model-implied iROAS for the vendor's test 1.10 [0.38, 2.01] (uncalibrated), 0.96 (discounted), 0.86 [0.49, 1.26] (full). Calibrated allocations differ from the main plan by ≤ 0.38M per channel.
+- Value of information at 18M: EVPI 895k; EVPPI Ch0 339k ≈ Ch4 337k > Ch3 216k > Ch1 180k > Ch2 127k.
+- Power: best design (Channel0 switched off in 20 geos for 16 weeks, 26-week pre-period) **32%**, minimum detectable iROAS 2.7, ~2M spend forgone. No design in the grid reaches 80%.
+- Prior-predictive media share with the final spec: median 0.24 [0.13, 0.59].
+- Convergence: main R-hat ≤ 1.039 (ESS ≥ 143); calibrated ≤ 1.042; national ≤ 1.036; weekly FE ≤ 1.058; no-organic ≤ 1.034; no-sentiment 1.145.
+
+### B-D09 · Experiment recommendation: no small test
+The most valuable uncertainty (Ch0/Ch4, ~0.34M each) cannot be resolved by a feasible geo test: weekly geo revenue noise is ~26% of a geo-week's revenue. A 16-week, 20-geo switch-off detects the effect ~1 time in 3 and forgoes ~2M spend (≈ 2.6M revenue at the estimated ROI) — more than the information is worth. Recommend gradual, monitored reallocation and, if testing, ≥ 20 geos × ≥ 16 weeks with weekly execution checks (the Channel3 test's failure mode).
+
+### B-A12 · Recovery test re-run with the final specification and sampler
+2 replicates: **10/10** true ROIs inside their 90% intervals (posterior means 0.61–2.25 vs truths 0.6–2.2). Across both validation rounds 19/20 = 95%.
+
+### B-A13 · `--holdout-start` works on another window
+`--fast --holdout-start 2023-07-03` (train to 2023-06-26, 127 weeks; hold-out Jul–Sep 2023): national WAPE 3.2%, bias −1.6%, 90% coverage 1.00, R² 0.59; geo WAPE 21.5%. Same qualitative ranking (Ch4 highest marginal ROI 1.05, Ch3 lowest 0.46). Runs in 3.5 min in fast mode.

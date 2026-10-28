@@ -17,3 +17,6 @@ of geo-level effects, not just on headline ROIs.
 | 2 | Gave control variables one shared coefficient | The fitted model had 11–18 of 40 geos with *negative* media effects; tighter pooling did not remove them | Geo-specific control effects (as in Meridian); negatives disappear, fit improves |
 | 3 | Used SLSQP for the budget optimiser | It failed on piecewise-linear response curves in the end-to-end smoke test | Exact greedy water-filling (curves are concave) |
 | 4 | Initially compared the experiment geos using absolute spend ratios (0.57 → 0.66) | Test geos are smaller; per-capita ratios (0.88 → 0.94) are the right comparison | Audit uses per-capita spend |
+| 5 | Reported a 12M "floor" plan with +2.3M uplift and P = 1.00 | Implausibly certain; traced to comparing 14.54M of spend against today's mix scaled to 12M | Uplift always compared at equal total spend |
+| 6 | Drafted the memo saying Channel3's return "could be higher" if sentiment were a mediator | Re-reading against the numbers: dropping sentiment *lowers* Channel3's ROI, so the mediator reading would mean advertising lowers sales via sentiment | Memo corrected; the same argument now supports treating sentiment as a confounder |
+| 7 | One-parameter-at-a-time Metropolis after adding geo controls | R-hat 1.078, ESS 30 | Joint adaptive block per channel: R-hat 1.039, ESS 143 |

@@ -1,0 +1,811 @@
+{
+ "train": [
+  "2021-01-25",
+  "2023-10-16"
+ ],
+ "holdout": [
+  "2023-10-23",
+  "2024-01-15"
+ ],
+ "accuracy_holdout": {
+  "geo": {
+   "wape": 0.21883057931923466,
+   "mape": 0.26988178858312073,
+   "r2": 0.7274316641071533,
+   "bias": -0.06186898741162483,
+   "coverage90": 0.8576923076923076
+  },
+  "national": {
+   "wape": 0.06329846767001814,
+   "mape": 0.06251927880954466,
+   "r2": -1.4580661483016715,
+   "bias": -0.06186898741162483,
+   "coverage90": 0.8461538461538461
+  }
+ },
+ "accuracy_last52_train": {
+  "geo": {
+   "wape": 0.20456764334014865,
+   "mape": 0.25914988361234215,
+   "r2": 0.7706370718850277,
+   "bias": -0.00023596389593061318,
+   "coverage90": 0.9144230769230769
+  },
+  "national": {
+   "wape": 0.033917404127109,
+   "mape": 0.03429707408579869,
+   "r2": 0.4785642308342577,
+   "bias": -0.00023596389593050215,
+   "coverage90": 0.9230769230769231
+  }
+ },
+ "diagnostics": {
+  "uncalibrated": {
+   "alpha[Channel0]": {
+    "rhat": 1.006,
+    "ess": 277.0
+   },
+   "ec[Channel0]": {
+    "rhat": 1.023,
+    "ess": 204.0
+   },
+   "eta[Channel0]": {
+    "rhat": 1.013,
+    "ess": 379.0
+   },
+   "alpha[Channel1]": {
+    "rhat": 1.035,
+    "ess": 199.0
+   },
+   "ec[Channel1]": {
+    "rhat": 1.039,
+    "ess": 143.0
+   },
+   "eta[Channel1]": {
+    "rhat": 1.009,
+    "ess": 410.0
+   },
+   "alpha[Channel2]": {
+    "rhat": 1.018,
+    "ess": 200.0
+   },
+   "ec[Channel2]": {
+    "rhat": 1.012,
+    "ess": 224.0
+   },
+   "eta[Channel2]": {
+    "rhat": 1.013,
+    "ess": 393.0
+   },
+   "alpha[Channel3]": {
+    "rhat": 1.016,
+    "ess": 209.0
+   },
+   "ec[Channel3]": {
+    "rhat": 1.008,
+    "ess": 261.0
+   },
+   "eta[Channel3]": {
+    "rhat": 1.021,
+    "ess": 531.0
+   },
+   "alpha[Channel4]": {
+    "rhat": 1.013,
+    "ess": 197.0
+   },
+   "ec[Channel4]": {
+    "rhat": 1.005,
+    "ess": 220.0
+   },
+   "eta[Channel4]": {
+    "rhat": 1.002,
+    "ess": 358.0
+   },
+   "alpha[Organic]": {
+    "rhat": 1.021,
+    "ess": 230.0
+   },
+   "ec[Organic]": {
+    "rhat": 1.012,
+    "ess": 191.0
+   },
+   "eta[Organic]": {
+    "rhat": 1.006,
+    "ess": 577.0
+   },
+   "roi[Channel0]": {
+    "rhat": 1.01,
+    "ess": 447.0
+   },
+   "roi[Channel1]": {
+    "rhat": 1.015,
+    "ess": 277.0
+   },
+   "roi[Channel2]": {
+    "rhat": 1.008,
+    "ess": 505.0
+   },
+   "roi[Channel3]": {
+    "rhat": 1.008,
+    "ess": 346.0
+   },
+   "roi[Channel4]": {
+    "rhat": 1.002,
+    "ess": 302.0
+   },
+   "beta_org": {
+    "rhat": 1.006,
+    "ess": 410.0
+   },
+   "mean log sigma": {
+    "rhat": 1.006,
+    "ess": 564.0
+   }
+  },
+  "discounted": {
+   "alpha[Channel0]": {
+    "rhat": 1.027,
+    "ess": 171.0
+   },
+   "ec[Channel0]": {
+    "rhat": 1.004,
+    "ess": 338.0
+   },
+   "eta[Channel0]": {
+    "rhat": 1.002,
+    "ess": 521.0
+   },
+   "alpha[Channel1]": {
+    "rhat": 1.014,
+    "ess": 248.0
+   },
+   "ec[Channel1]": {
+    "rhat": 1.01,
+    "ess": 250.0
+   },
+   "eta[Channel1]": {
+    "rhat": 1.007,
+    "ess": 492.0
+   },
+   "alpha[Channel2]": {
+    "rhat": 1.018,
+    "ess": 242.0
+   },
+   "ec[Channel2]": {
+    "rhat": 1.008,
+    "ess": 236.0
+   },
+   "eta[Channel2]": {
+    "rhat": 1.005,
+    "ess": 541.0
+   },
+   "alpha[Channel3]": {
+    "rhat": 1.02,
+    "ess": 180.0
+   },
+   "ec[Channel3]": {
+    "rhat": 1.019,
+    "ess": 279.0
+   },
+   "eta[Channel3]": {
+    "rhat": 1.006,
+    "ess": 407.0
+   },
+   "alpha[Channel4]": {
+    "rhat": 1.006,
+    "ess": 229.0
+   },
+   "ec[Channel4]": {
+    "rhat": 1.026,
+    "ess": 214.0
+   },
+   "eta[Channel4]": {
+    "rhat": 1.009,
+    "ess": 497.0
+   },
+   "alpha[Organic]": {
+    "rhat": 1.042,
+    "ess": 144.0
+   },
+   "ec[Organic]": {
+    "rhat": 1.01,
+    "ess": 209.0
+   },
+   "eta[Organic]": {
+    "rhat": 1.002,
+    "ess": 474.0
+   },
+   "roi[Channel0]": {
+    "rhat": 1.006,
+    "ess": 365.0
+   },
+   "roi[Channel1]": {
+    "rhat": 1.013,
+    "ess": 450.0
+   },
+   "roi[Channel2]": {
+    "rhat": 1.008,
+    "ess": 386.0
+   },
+   "roi[Channel3]": {
+    "rhat": 1.014,
+    "ess": 394.0
+   },
+   "roi[Channel4]": {
+    "rhat": 1.009,
+    "ess": 369.0
+   },
+   "beta_org": {
+    "rhat": 1.004,
+    "ess": 276.0
+   },
+   "mean log sigma": {
+    "rhat": 1.001,
+    "ess": 608.0
+   }
+  },
+  "full": {
+   "alpha[Channel0]": {
+    "rhat": 1.005,
+    "ess": 268.0
+   },
+   "ec[Channel0]": {
+    "rhat": 1.036,
+    "ess": 191.0
+   },
+   "eta[Channel0]": {
+    "rhat": 1.007,
+    "ess": 453.0
+   },
+   "alpha[Channel1]": {
+    "rhat": 1.018,
+    "ess": 203.0
+   },
+   "ec[Channel1]": {
+    "rhat": 1.019,
+    "ess": 223.0
+   },
+   "eta[Channel1]": {
+    "rhat": 1.015,
+    "ess": 235.0
+   },
+   "alpha[Channel2]": {
+    "rhat": 1.023,
+    "ess": 173.0
+   },
+   "ec[Channel2]": {
+    "rhat": 1.008,
+    "ess": 277.0
+   },
+   "eta[Channel2]": {
+    "rhat": 1.007,
+    "ess": 384.0
+   },
+   "alpha[Channel3]": {
+    "rhat": 1.021,
+    "ess": 204.0
+   },
+   "ec[Channel3]": {
+    "rhat": 1.006,
+    "ess": 230.0
+   },
+   "eta[Channel3]": {
+    "rhat": 1.003,
+    "ess": 521.0
+   },
+   "alpha[Channel4]": {
+    "rhat": 1.014,
+    "ess": 254.0
+   },
+   "ec[Channel4]": {
+    "rhat": 1.014,
+    "ess": 175.0
+   },
+   "eta[Channel4]": {
+    "rhat": 1.012,
+    "ess": 394.0
+   },
+   "alpha[Organic]": {
+    "rhat": 1.023,
+    "ess": 152.0
+   },
+   "ec[Organic]": {
+    "rhat": 1.019,
+    "ess": 282.0
+   },
+   "eta[Organic]": {
+    "rhat": 1.004,
+    "ess": 472.0
+   },
+   "roi[Channel0]": {
+    "rhat": 1.004,
+    "ess": 392.0
+   },
+   "roi[Channel1]": {
+    "rhat": 1.005,
+    "ess": 364.0
+   },
+   "roi[Channel2]": {
+    "rhat": 1.006,
+    "ess": 505.0
+   },
+   "roi[Channel3]": {
+    "rhat": 1.006,
+    "ess": 606.0
+   },
+   "roi[Channel4]": {
+    "rhat": 1.007,
+    "ess": 416.0
+   },
+   "beta_org": {
+    "rhat": 1.024,
+    "ess": 333.0
+   },
+   "mean log sigma": {
+    "rhat": 1.004,
+    "ess": 516.0
+   }
+  },
+  "national": {
+   "alpha[Channel0]": {
+    "rhat": 1.011,
+    "ess": 219.0
+   },
+   "ec[Channel0]": {
+    "rhat": 1.006,
+    "ess": 308.0
+   },
+   "eta[Channel0]": {
+    "rhat": null,
+    "ess": null
+   },
+   "alpha[Channel1]": {
+    "rhat": 1.036,
+    "ess": 121.0
+   },
+   "ec[Channel1]": {
+    "rhat": 1.011,
+    "ess": 235.0
+   },
+   "eta[Channel1]": {
+    "rhat": null,
+    "ess": null
+   },
+   "alpha[Channel2]": {
+    "rhat": 1.015,
+    "ess": 296.0
+   },
+   "ec[Channel2]": {
+    "rhat": 1.005,
+    "ess": 296.0
+   },
+   "eta[Channel2]": {
+    "rhat": null,
+    "ess": null
+   },
+   "alpha[Channel3]": {
+    "rhat": 1.017,
+    "ess": 188.0
+   },
+   "ec[Channel3]": {
+    "rhat": 1.032,
+    "ess": 66.0
+   },
+   "eta[Channel3]": {
+    "rhat": null,
+    "ess": null
+   },
+   "alpha[Channel4]": {
+    "rhat": 1.017,
+    "ess": 245.0
+   },
+   "ec[Channel4]": {
+    "rhat": 1.012,
+    "ess": 300.0
+   },
+   "eta[Channel4]": {
+    "rhat": null,
+    "ess": null
+   },
+   "alpha[Organic]": {
+    "rhat": 1.016,
+    "ess": 283.0
+   },
+   "ec[Organic]": {
+    "rhat": 1.004,
+    "ess": 257.0
+   },
+   "eta[Organic]": {
+    "rhat": null,
+    "ess": null
+   },
+   "roi[Channel0]": {
+    "rhat": 1.007,
+    "ess": 764.0
+   },
+   "roi[Channel1]": {
+    "rhat": 1.004,
+    "ess": 840.0
+   },
+   "roi[Channel2]": {
+    "rhat": 1.004,
+    "ess": 770.0
+   },
+   "roi[Channel3]": {
+    "rhat": 1.011,
+    "ess": 492.0
+   },
+   "roi[Channel4]": {
+    "rhat": 1.001,
+    "ess": 835.0
+   },
+   "beta_org": {
+    "rhat": 1.003,
+    "ess": 779.0
+   },
+   "mean log sigma": {
+    "rhat": 1.006,
+    "ess": 465.0
+   }
+  },
+  "weekly_fe": {
+   "alpha[Channel0]": {
+    "rhat": 1.003,
+    "ess": 145.0
+   },
+   "ec[Channel0]": {
+    "rhat": 1.01,
+    "ess": 239.0
+   },
+   "eta[Channel0]": {
+    "rhat": 1.006,
+    "ess": 352.0
+   },
+   "alpha[Channel1]": {
+    "rhat": 1.026,
+    "ess": 145.0
+   },
+   "ec[Channel1]": {
+    "rhat": 1.026,
+    "ess": 123.0
+   },
+   "eta[Channel1]": {
+    "rhat": 1.011,
+    "ess": 238.0
+   },
+   "alpha[Channel2]": {
+    "rhat": 1.042,
+    "ess": 173.0
+   },
+   "ec[Channel2]": {
+    "rhat": 1.027,
+    "ess": 158.0
+   },
+   "eta[Channel2]": {
+    "rhat": 1.01,
+    "ess": 343.0
+   },
+   "alpha[Channel3]": {
+    "rhat": 1.029,
+    "ess": 162.0
+   },
+   "ec[Channel3]": {
+    "rhat": 1.02,
+    "ess": 173.0
+   },
+   "eta[Channel3]": {
+    "rhat": 1.01,
+    "ess": 331.0
+   },
+   "alpha[Channel4]": {
+    "rhat": 1.014,
+    "ess": 102.0
+   },
+   "ec[Channel4]": {
+    "rhat": 1.021,
+    "ess": 168.0
+   },
+   "eta[Channel4]": {
+    "rhat": 1.008,
+    "ess": 302.0
+   },
+   "alpha[Organic]": {
+    "rhat": 1.058,
+    "ess": 38.0
+   },
+   "ec[Organic]": {
+    "rhat": 1.02,
+    "ess": 132.0
+   },
+   "eta[Organic]": {
+    "rhat": 1.011,
+    "ess": 381.0
+   },
+   "roi[Channel0]": {
+    "rhat": 1.019,
+    "ess": 267.0
+   },
+   "roi[Channel1]": {
+    "rhat": 1.012,
+    "ess": 249.0
+   },
+   "roi[Channel2]": {
+    "rhat": 1.005,
+    "ess": 419.0
+   },
+   "roi[Channel3]": {
+    "rhat": 1.018,
+    "ess": 345.0
+   },
+   "roi[Channel4]": {
+    "rhat": 1.006,
+    "ess": 317.0
+   },
+   "beta_org": {
+    "rhat": 1.027,
+    "ess": 150.0
+   },
+   "mean log sigma": {
+    "rhat": 1.01,
+    "ess": 392.0
+   }
+  },
+  "no_sentiment": {
+   "alpha[Channel0]": {
+    "rhat": 1.145,
+    "ess": 17.0
+   },
+   "ec[Channel0]": {
+    "rhat": 1.019,
+    "ess": 131.0
+   },
+   "eta[Channel0]": {
+    "rhat": 1.073,
+    "ess": 45.0
+   },
+   "alpha[Channel1]": {
+    "rhat": 1.01,
+    "ess": 247.0
+   },
+   "ec[Channel1]": {
+    "rhat": 1.026,
+    "ess": 160.0
+   },
+   "eta[Channel1]": {
+    "rhat": 1.012,
+    "ess": 207.0
+   },
+   "alpha[Channel2]": {
+    "rhat": 1.043,
+    "ess": 115.0
+   },
+   "ec[Channel2]": {
+    "rhat": 1.016,
+    "ess": 245.0
+   },
+   "eta[Channel2]": {
+    "rhat": 1.021,
+    "ess": 238.0
+   },
+   "alpha[Channel3]": {
+    "rhat": 1.029,
+    "ess": 200.0
+   },
+   "ec[Channel3]": {
+    "rhat": 1.025,
+    "ess": 106.0
+   },
+   "eta[Channel3]": {
+    "rhat": 1.023,
+    "ess": 168.0
+   },
+   "alpha[Channel4]": {
+    "rhat": 1.017,
+    "ess": 162.0
+   },
+   "ec[Channel4]": {
+    "rhat": 1.02,
+    "ess": 135.0
+   },
+   "eta[Channel4]": {
+    "rhat": 1.006,
+    "ess": 332.0
+   },
+   "alpha[Organic]": {
+    "rhat": 1.035,
+    "ess": 106.0
+   },
+   "ec[Organic]": {
+    "rhat": 1.009,
+    "ess": 137.0
+   },
+   "eta[Organic]": {
+    "rhat": 1.007,
+    "ess": 221.0
+   },
+   "roi[Channel0]": {
+    "rhat": 1.015,
+    "ess": 331.0
+   },
+   "roi[Channel1]": {
+    "rhat": 1.004,
+    "ess": 392.0
+   },
+   "roi[Channel2]": {
+    "rhat": 1.007,
+    "ess": 378.0
+   },
+   "roi[Channel3]": {
+    "rhat": 1.037,
+    "ess": 158.0
+   },
+   "roi[Channel4]": {
+    "rhat": 1.011,
+    "ess": 313.0
+   },
+   "beta_org": {
+    "rhat": 1.033,
+    "ess": 107.0
+   },
+   "mean log sigma": {
+    "rhat": 1.013,
+    "ess": 326.0
+   }
+  },
+  "no_organic": {
+   "alpha[Channel0]": {
+    "rhat": 1.022,
+    "ess": 237.0
+   },
+   "ec[Channel0]": {
+    "rhat": 1.026,
+    "ess": 231.0
+   },
+   "eta[Channel0]": {
+    "rhat": 1.002,
+    "ess": 396.0
+   },
+   "alpha[Channel1]": {
+    "rhat": 1.011,
+    "ess": 166.0
+   },
+   "ec[Channel1]": {
+    "rhat": 1.03,
+    "ess": 203.0
+   },
+   "eta[Channel1]": {
+    "rhat": 1.007,
+    "ess": 358.0
+   },
+   "alpha[Channel2]": {
+    "rhat": 1.016,
+    "ess": 133.0
+   },
+   "ec[Channel2]": {
+    "rhat": 1.014,
+    "ess": 167.0
+   },
+   "eta[Channel2]": {
+    "rhat": 1.007,
+    "ess": 392.0
+   },
+   "alpha[Channel3]": {
+    "rhat": 1.005,
+    "ess": 172.0
+   },
+   "ec[Channel3]": {
+    "rhat": 1.009,
+    "ess": 196.0
+   },
+   "eta[Channel3]": {
+    "rhat": 1.008,
+    "ess": 194.0
+   },
+   "alpha[Channel4]": {
+    "rhat": 1.022,
+    "ess": 146.0
+   },
+   "ec[Channel4]": {
+    "rhat": 1.034,
+    "ess": 101.0
+   },
+   "eta[Channel4]": {
+    "rhat": 1.002,
+    "ess": 445.0
+   },
+   "roi[Channel0]": {
+    "rhat": 1.025,
+    "ess": 333.0
+   },
+   "roi[Channel1]": {
+    "rhat": 1.009,
+    "ess": 201.0
+   },
+   "roi[Channel2]": {
+    "rhat": 1.012,
+    "ess": 314.0
+   },
+   "roi[Channel3]": {
+    "rhat": 1.009,
+    "ess": 320.0
+   },
+   "roi[Channel4]": {
+    "rhat": 1.008,
+    "ess": 307.0
+   },
+   "mean log sigma": {
+    "rhat": 1.005,
+    "ess": 354.0
+   }
+  }
+ },
+ "implied_channel3_test_iroas": {
+  "uncalibrated": {
+   "mean": 1.1026733673465663,
+   "p05": 0.38391281309763364,
+   "p95": 2.0060148642329114
+  },
+  "discounted": {
+   "mean": 0.9620140348190008,
+   "p05": 0.41105574325837296,
+   "p95": 1.6268996298603169
+  },
+  "full": {
+   "mean": 0.8626058855383417,
+   "p05": 0.4900816054807146,
+   "p95": 1.2623802132360484
+  },
+  "weekly_fe": {
+   "mean": 0.9252285988017225,
+   "p05": 0.32312668557981766,
+   "p95": 1.751810794643192
+  },
+  "no_sentiment": {
+   "mean": 0.3522454393079695,
+   "p05": -0.565417465945242,
+   "p95": 1.336795470898248
+  },
+  "no_organic": {
+   "mean": 1.1496773939751146,
+   "p05": 0.42207817895366173,
+   "p95": 2.181192425171616
+  }
+ },
+ "evpi": 894953.0320451446,
+ "evppi": {
+  "Channel0": 339036.01843973994,
+  "Channel1": 179684.5971992463,
+  "Channel2": 126662.39226409793,
+  "Channel3": 215982.41503672674,
+  "Channel4": 337146.6836602092
+ },
+ "next_experiment_channel": "Channel0",
+ "prior_media_share": {
+  "median": 0.24343204512336783,
+  "p05": 0.12828378152471823,
+  "p95": 0.5888136938852955
+ },
+ "alt_budget": {
+  "full": {
+   "spend": [
+    3227191.258866938,
+    2241143.37390972,
+    1443920.1088899907,
+    5564664.1323378,
+    5523081.125995494
+   ],
+   "revenue_mean": 21709121.99387527
+  },
+  "discounted": {
+   "spend": [
+    3500175.4271397255,
+    2241143.37390972,
+    1227332.0925564955,
+    5564664.1323378,
+    5466684.974056198
+   ],
+   "revenue_mean": 21791316.794281743
+  }
+ },
+ "runtime_min": 17.940523346265156
+}
