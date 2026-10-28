@@ -281,3 +281,51 @@ DC level: recovered bias 1.098 / 1.095 / 1.042, 90% coverage 0.93 / 0.94 / 0.94;
 ### A-16 · Run-to-run spread is large (12 runs, default knobs, d_1885)
 - Fill 0.896–0.974 (mean **0.940**, sd 0.024); cost $76k–$119k (mean $95k). Driven by FOODS_3 (fill 0.869–0.973): **one lead-time draw per PO**, so a single slow FOODS_3 PO (p95 ≈ 17.5 days) starves the DC.
 - At default knobs the policy misses 95% on average → DC protection must go up; tuning uses common random numbers and a fill-rate margin on every tuning cutoff.
+
+### A-17 · Where the recommended policy loses sales (d_1885, one bad and one good seed)
+- **Bad seed (fill 0.909):** the day-0 FOODS_3 PO took **23 days** (mean 10). With no starting pipeline and 7 days of DC stock, FOODS_3 weekly fill fell to 0.60 / 0.72 in weeks 2–3, then recovered to ~0.97. The day-7 order was automatically larger (100k vs 69k units) because the day-0 PO was overdue — but nothing ordered on day 0 can arrive sooner. **Start-up risk is structural under the stated starting conditions**; it dominates the run-to-run spread.
+- **Steady state (days 21–55, good seed):** 2.8% of demand lost. ~15% of that on series whose 21-day cap is 0 (no recorded sales in the last year) — 75 series; ~16% on items dormant at the cutoff; ~30% on fast-growing items whose cap (21 × last-year average) is tight vs. current demand; the rest ordinary shortfall spread over weekdays. Lost share by velocity: 4.0% (<0.5/day), 3.0%, 2.2%, 3.0% (>5/day).
+- Raising the DC quantile 0.97 → 0.99 moved fill only 0.939 → 0.942 at +$4k DC holding → order *size* was not the problem.
+
+### D-26 · DC order sized path by path, with open POs that may be late **[supersedes the echelon target in A-14]**
+- Old: echelon position (DC + all open POs + stores) vs a quantile of demand to the next arrival. Counted every open PO as if already available.
+- New, per sample path: draw each open PO's remaining lead time *conditional on it not having arrived yet* (lognormal truncated at elapsed days), today's order arrival L0, and the next delivery A = earliest of the next 4 weekly orders (handles crossing). Required order `Q_s = max over τ in [L0, A) of [demand to τ + 2 − (stock now + open POs arrived by τ)]`; order the β-quantile of Q_s.
+- Effect at default knobs: mean fill unchanged within noise (0.939), range 0.892–0.974 → 0.905–0.973, DC holding −$0.8k. Kept because it is the correct logic for random lead times and it is what makes an announced lead-time shock (Task 5) translate into pre-buying.
+
+### A-18 · Backtest v2 (with D-24 adjustments)
+
+| cutoff | store bias rec. (v1 → v2) | store pinball rec. (v1 → v2) | DC bias rec. | DC 90% cov |
+|---|---|---|---|---|
+| d_1801 | 1.095 → 1.090 | 0.237 → 0.236 | 1.094 | 0.93 |
+| d_1829 | 1.083 → 1.044 | 0.229 → 0.227 | 1.055 | 0.95 |
+| d_1857 | 1.036 → 0.999 | 0.233 → 0.230 | 1.005 | 0.94 |
+
+- Better on every cutoff; the January window (d_1801) remains ~9% under (post-holiday rebound the calibration window didn't show).
+- By dept (mean of cutoffs): FOODS_1 bias 1.027, FOODS_2 1.030, FOODS_3 1.053; 90% coverage 0.95–0.97.
+
+### D-28 · The raw-sales benchmark must be fully naive (bug in my own comparison)
+- In backtest v2 the raw-sales model's level correction and dispersion were calibrated against *recovered* demand, and it inherited the dormancy flags → it quietly received part of the benefit of demand recovery (raw bias gap shrank from ~6–8 to ~2–4 points).
+- Fixed: the raw benchmark is calibrated against recorded sales on all sellable days, gets no dormancy zeroing and no resume factor. Raw backtests and the raw-forecast ablation are re-run.
+
+### D-27 · Stress-test interpretation (Task 5)
+- "FOODS_3 lead times double for 3 weeks" = POs **placed** in test weeks 3–5 (days 14–34) get mean 20 days (CV 0.4 kept). Orders already in flight are unaffected (variant noted as a limitation).
+- Three scenarios on common random numbers: base / unwarned (policy believes 10 days) / warned 14 days ahead (policy plans each future order with the lead time it will face → pre-buys on the Mondays before). Baseline policy is run through the same scenarios for comparison.
+
+### A-19 · First tuning attempt: the quantile knobs barely matter (stopped early)
+- On the tuning windows (cutoffs d_1829 / d_1801 / d_1773), default knobs gave fill **0.945 / 0.912 / 0.926** and cost ~$89k. Changing the store quantile for one department moved fill by ≤ 0.002. Stopped after 8 settings (`reports/tuning_round0_partial.log`).
+
+### A-20 · Root cause on the d_1801 window: the DC runs out of hundreds of items every week
+- Daily trace: from Thursday to Sunday the DC is short on 300–1,000 items, shipments collapse from the 12,965 cap to 4–6k units/day, lost sales jump to 1–2k units/day. DC total stock is not zero (20–60k units) — it is item-level.
+- Outbound capacity used only 82–85% on average → capacity is *not* what binds on this window; DC stock is.
+- Cause: the DC rule required DC + store stock to cover cumulative demand to the next delivery — which lets DC **and** stores hit zero together. Stores can't share stock and need their working level to sell; that stock never flows back to the DC.
+
+### D-29 · Echelon base-stock with store working stock (Clark–Scarf logic)
+- DC order now requires `demand to τ + (store target levels still in place at τ) − stock − arrived POs ≤ Q`; knob `store_buffer` (share of store targets, default 1.0).
+- A/B on 6 common-random-number runs: d_1801 fill **0.912 → 0.932**, cost $96.5k → $93.9k; d_1885 fill **0.945 → 0.949**, cost $90.0k → $95.5k (DC holding +$8.5k, lost −$3.4k).
+
+### A-21 · Longer store cover windows do not help
+- Store window 3 → 5 → 7 days: d_1801 fill 0.932 → 0.938 → 0.935, cost $93.9k → $96.3k → $101.4k; d_1885 fill 0.949 → 0.946 → 0.935, cost $95.5k → $102.5k → $110.9k.
+- Bigger store targets inflate the DC order (D-29 term) and compete for outbound capacity on peak days; the allocation then spreads capacity across building cover rather than urgent refills. Window 3 kept; window 2–4 left to tuning.
+
+### D-30 · Tuning pass 2
+- One coordinate-descent pass over: DC quantile per dept {0.95, 0.97, 0.99, 0.995}, store quantile per dept {0.95, 0.97, 0.99}, store_buffer {0.5, 1, 1.5}, store window {2, 3, 4}; 6 CRN runs × 3 tuning cutoffs per setting; objective = mean cost + $20k per fill point below 95.5% on any tuning cutoff.

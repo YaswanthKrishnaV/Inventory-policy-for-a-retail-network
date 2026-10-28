@@ -248,27 +248,63 @@ class RecommendedPolicy:
 
     # ------------------------------------------------------------------ DC side
     def _dc_order(self, st):
+        """Monday PO per department, sized path by path.
+
+        For each sample path s: draw when each open PO will actually arrive (lognormal lead time
+        conditioned on not having arrived yet), when today's order arrives (L0), and when the next
+        future order lands (A = earliest of the next few weekly orders). Stock reaching the DC on
+        day tau serves store demand from tau + store_lead. Today's order must keep echelon stock
+        non-negative for every tau in [L0, A):
+            Q_s = max_tau [ D(1 .. tau + lead) - (stock now + open POs arrived by tau) ]
+        and the order is the beta-quantile of Q_s over paths. A late open PO therefore raises
+        today's order instead of being counted as if it were already on the shelf."""
         net = self.net
         b, rel = self._block(st.day)
-        S = b.dc_cum.shape[0]
+        S, I = b.dc_cum.shape[0], net.n_items
         T = b.dc_cum.shape[2] - 1
-        store_pos = (st.store_on_hand + st.store_inbound.sum(1)).reshape(net.n_items, 4).sum(1)
-        ep = st.dc_on_hand + st.dc_on_order() + store_pos
-        po = np.zeros(net.n_items)
+        sig = net.lt_sigma
+        store_pos = (st.store_on_hand + st.store_inbound.sum(1)).reshape(I, 4).sum(1)
+        base = st.dc_on_hand + store_pos                               # (I,)
+        po = np.zeros(I)
+        a0 = min(rel + 1, T)
+        # echelon base-stock (Clark-Scarf): the system must cover cumulative demand AND end the
+        # protection window with every store back at its target level
+        store_need = b.level(self.k["store_window"], rel, self.alpha).reshape(I, 4).sum(1) * self.k["store_buffer"]
         for k in range(3):
-            items = net.item_dept == k
-            # next order is placed in 7 days; its lead time is random (believed mean, CV from config)
-            m_next = st.believed_lt_mean(k, st.day + 7)
-            m_now = st.believed_lt_mean(k, st.day)
-            m = max(m_next, m_now)
-            mu_ln = np.log(m) - net.lt_sigma ** 2 / 2
-            L = np.maximum(1, np.round(self.lt_rng.lognormal(mu_ln, net.lt_sigma, size=S)))
-            end = np.minimum(rel + 1 + 7 + L.astype(int) + net.store_lead, T)
-            a = min(rel + 1, T)
-            cum = b.dc_cum[:, items]
-            dem = cum[np.arange(S), :, end] - cum[:, :, a]          # (S, n_items_dept)
-            target = np.quantile(dem, self.beta[items][0], axis=0)
-            po[items] = np.maximum(np.ceil(target - ep[items]), 0)
+            items = np.flatnonzero(net.item_dept == k)
+            def draw(m, size, elapsed=None):
+                mu_ln = np.log(m) - sig ** 2 / 2
+                if elapsed is None:
+                    x = self.lt_rng.lognormal(mu_ln, sig, size=size)
+                else:  # conditional on round(L) > elapsed, i.e. L > elapsed + 0.5
+                    lo = stats.lognorm.cdf(elapsed + 0.5, s=sig, scale=np.exp(mu_ln))
+                    u = lo + (1 - lo) * self.lt_rng.random(size)
+                    x = stats.lognorm.ppf(np.minimum(u, 1 - 1e-12), s=sig, scale=np.exp(mu_ln))
+                return np.maximum(1, np.round(x))
+            L0 = draw(st.believed_lt_mean(k, st.day), S)
+            A = np.full(S, 10_000.0)
+            for j in range(1, self.k["future_orders"] + 1):
+                A = np.minimum(A, 7 * j + draw(st.believed_lt_mean(k, st.day + 7 * j), S))
+            # open POs of this dept: remaining time to arrival per path
+            opens = [p for p in st.pipeline if p.dept == k]
+            H = int(min(A.max(), T - a0 - net.store_lead))
+            taus = np.arange(0, H + 1)                                  # days from today
+            stock = np.broadcast_to(base[items], (S, len(items))).astype(np.float64)
+            arrived_by = np.zeros((S, len(items), len(taus)))
+            for p_ in opens:
+                elapsed = st.day - p_.placed
+                rem = draw(st.believed_lt_mean(k, p_.placed), S, elapsed) - elapsed    # >= 1
+                arrived_by += p_.qty[items][None, :, None] * (rem[:, None, None] <= taus[None, None, :])
+            cum = b.dc_cum[:, items].astype(np.float64)
+            hi_idx = np.minimum(a0 + taus + net.store_lead, T)
+            D = cum[:, :, hi_idx] - cum[:, :, a0:a0 + 1]                # demand from tomorrow through tau + lead
+            # stores must still hold their own working stock at tau (it can't be shared between stores)
+            gap = D + store_need[items][None, :, None] - stock[:, :, None] - arrived_by   # (S, items, taus)
+            valid = (taus[None, :] >= L0[:, None]) & (taus[None, :] < A[:, None])   # (S, taus)
+            gap = np.where(valid[:, None, :], gap, -np.inf)
+            Q = np.maximum(gap.max(2), 0)                               # (S, items)
+            Q[~np.isfinite(Q)] = 0
+            po[items] = np.ceil(np.quantile(Q, self.beta[items][0], axis=0))
         return po
 
     # ------------------------------------------------------------------ main
@@ -284,23 +320,27 @@ class RecommendedPolicy:
 
 
 # ============================================================================ factory
-def build_forecasts(panel, net, cfg, log=print, model=None):
+def build_forecasts(panel, net, cfg, log=print, model=None, raw=False, adjust=True):
     """Forecast blocks for the replay: one at the cutoff, then every `refit_every` days.
 
     The model is trained once on data <= cutoff. Later blocks re-forecast with the same model
     using demand observed up to that day (no retraining on test data)."""
     from .src import demand_recovery as dr
-    f0, model = fc.run_forecast(panel, net.start, cfg, model=model, log=log)
+    f0, model = fc.run_forecast(panel, net.start, cfg, raw=raw, model=model, log=log)
+    if not adjust:   # ablation: model output without the post-model corrections (no refit needed)
+        rec0 = dr.recover(panel, net.start, cfg)
+        f0 = fc.Forecast(f0.origin, f0.horizon, fc.predict_mean(model, panel, rec0, net.start, f0.horizon, cfg, raw=raw),
+                         f0.disp, raw, f0.timings, None)
     blocks = [f0]
     step = cfg["calendar"]["refit_every"]
     H = cfg["calendar"]["forecast_horizon"]
     o = net.start + step
     while step and o < net.start + net.days:
         rec = dr.recover(panel, o, cfg)
-        mu = fc.predict_mean(model, panel, rec, o, H, cfg)
+        mu = fc.predict_mean(model, panel, rec, o, H, cfg, raw=raw)
         if f0.adj is not None:
-            mu = fc.apply_adjustments(mu, f0.adj, panel, rec, o, cfg)
-        blocks.append(fc.Forecast(o, H, mu, f0.disp, adj=f0.adj))
+            mu = fc.apply_adjustments(mu, f0.adj, panel, rec, o, cfg, raw=raw)
+        blocks.append(fc.Forecast(o, H, mu, f0.disp, raw=raw, adj=f0.adj))
         o += step
     return blocks, model
 

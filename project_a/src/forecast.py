@@ -101,7 +101,8 @@ def predict_mean(model: GBM, panel, rec, origin: int, horizon: int, cfg: dict, r
     c = np.tile(np.arange(horizon), N)
     mu = model.predict(gather(F, r, c, model.names)).reshape(N, horizon)
     # not ranged at the origin (dormant) or not listed in the forecast week -> no demand
-    mu[rec.status[:, origin - 1] == dr.DORMANT] = 0.0
+    if not raw:   # the raw-sales benchmark knows nothing from demand recovery (incl. dormancy)
+        mu[rec.status[:, origin - 1] == dr.DORMANT] = 0.0
     P = panel.price
     if cfg["prices"]["use_future_prices"]:
         listed = ~np.isnan(P[:, origin:stop])
@@ -258,8 +259,7 @@ def _run_forecast(panel, origin, cfg, raw, model, log):
     rec_c = dr.recover(panel, cal_origin, cfg)
     model_c = fit_mean_model(panel, rec_c, cal_origin, cfg, raw=raw)
     mu_c = predict_mean(model_c, panel, rec_c, cal_origin, H, cfg, raw=raw)
-    y_c = rec.demand[:, cal_origin:origin]
-    ok_c = rec.status[:, cal_origin:origin] == dr.OK
+    y_c, ok_c = calibration_target(panel, rec, cal_origin, origin, raw)
     disp = estimate_dispersion(mu_c, y_c, ok_c, cfg)
     tm["calibrate"] = time.time() - t0
     mu = predict_mean(model, panel, rec, origin, H, cfg, raw=raw)
@@ -272,6 +272,17 @@ def _run_forecast(panel, origin, cfg, raw, model, log):
 
 
 # ----------------------------------------------------------------------------- post-model adjustments
+def calibration_target(panel, rec, a, b, raw):
+    """What the calibration window is scored against. The recovered model: recovered demand on
+    uncensored days. The raw-sales benchmark: recorded sales on every sellable day — a naive
+    pipeline never sees recovered demand, so it must not be calibrated against it either."""
+    if raw:
+        st = rec.status[:, a:b]
+        ok = ~np.isin(st, (dr.PRELAUNCH, dr.UNLISTED, dr.CLOSED))
+        return panel.sales[:, a:b].astype(np.float32), ok
+    return rec.demand[:, a:b], rec.status[:, a:b] == dr.OK
+
+
 def _pre_rate(panel, rec, origin, raw):
     """Mean demand over the last 364 days on days the item was sellable (NaN-aware)."""
     Y = demand_history(panel, rec, raw=raw)[:, max(0, origin - 364):origin]
@@ -288,8 +299,7 @@ def estimate_adjustments(panel, rec_c, rec, cal_origin, origin, mu_c, cfg, raw=F
     """
     ac = cfg["forecast"]["adjust"]
     H = origin - cal_origin
-    y = rec.demand[:, cal_origin:origin]
-    ok = rec.status[:, cal_origin:origin] == dr.OK
+    y, ok = calibration_target(panel, rec, cal_origin, origin, raw)
     dorm_c = rec_c.status[:, cal_origin - 1] == dr.DORMANT
     groups = (panel.meta["store_id"] + "|" + panel.meta["dept_id"]).to_numpy()
     level = np.ones(len(groups), np.float32)
@@ -303,9 +313,9 @@ def estimate_adjustments(panel, rec_c, rec, cal_origin, origin, mu_c, cfg, raw=F
         ratios[g] = round(float(ratio), 3)
     pre = _pre_rate(panel, rec_c, cal_origin, raw)
     den = pre[dorm_c].sum() * H
-    resume = float(rec.demand[dorm_c, cal_origin:origin].sum() / den) if den > 0 else 0.0
+    resume = float(np.where(ok, y, 0)[dorm_c].sum() / den) if den > 0 else 0.0
     resume = float(np.clip(resume, 0, 1))
-    return dict(level=level, resume=resume if ac["dormant_resume"] else 0.0,
+    return dict(level=level, resume=resume if (ac["dormant_resume"] and not raw) else 0.0,
                 diag=dict(level_ratio=ratios, resume_factor=resume))
 
 
@@ -317,3 +327,54 @@ def apply_adjustments(mu, adj, panel, rec, origin, cfg, raw=False):
         pre = _pre_rate(panel, rec, origin, raw)
         mu[dorm & listed] = (adj["resume"] * pre[dorm & listed])[:, None]
     return mu.astype(np.float32)
+
+
+# ----------------------------------------------------------------------------- deliverable file
+def forecast_table(f: Forecast, panel, cfg, n_paths: int | None = None, seed: int | None = None):
+    """Long table: one row per (item, location, day) for locations CA_1..CA_4 and DC.
+    Quantiles q05..q95 from sample paths; DC rows from the sum of the item's store paths."""
+    import pandas as pd
+    qs = cfg["forecast"]["quantiles"]
+    S = n_paths or cfg["forecast"]["n_paths"]
+    paths = f.paths(S, (seed if seed is not None else cfg["seed"]) + f.origin)
+    N, H = f.mu.shape
+    qst = quantiles(paths, qs)                                    # (Q, N, H)
+    dcp = to_dc(paths)
+    qdc = quantiles(dcp, qs)
+    del paths, dcp
+    meta = panel.meta
+    days = np.arange(f.origin, f.origin + H)
+    cal = panel.cal.set_index("d")
+    cols = {f"q{int(round(q * 100)):02d}": None for q in qs}
+
+    def block(item, dept, loc, mean, qarr):
+        n = len(item)
+        df = pd.DataFrame({"item_id": np.repeat(item, H), "dept_id": np.repeat(dept, H),
+                           "location": np.repeat(loc, H), "d": np.tile(days + 1, n),
+                           "horizon": np.tile(np.arange(1, H + 1), n), "mean": mean.reshape(-1)})
+        for k, c in enumerate(cols):
+            df[c] = qarr[k].reshape(-1)
+        return df
+
+    st = block(meta["item_id"].to_numpy(), meta["dept_id"].to_numpy(), meta["store_id"].to_numpy(), f.mu, qst)
+    it = meta.iloc[::4]
+    dc = block(it["item_id"].to_numpy(), it["dept_id"].to_numpy(), np.full(len(it), "DC"),
+               f.mu.reshape(N // 4, 4, H).sum(1), qdc)
+    out = pd.concat([st, dc], ignore_index=True)
+    out["date"] = cal.loc[out["d"], "date"].to_numpy()
+    out = out[["item_id", "dept_id", "location", "d", "date", "horizon", "mean"] + list(cols)]
+    for c in ["mean"] + list(cols):
+        out[c] = out[c].astype("float32")
+    return out
+
+
+def write_forecasts(df, file):
+    """Parquet via pyarrow (in requirements). Falls back to gzipped CSV only if no engine exists."""
+    try:
+        df.to_parquet(file, index=False)
+        return file
+    except ImportError:
+        alt = file.with_suffix(".csv.gz")
+        df.to_csv(alt, index=False)
+        print(f"  WARNING: no parquet engine installed; wrote {alt.name} instead (pip install pyarrow)")
+        return alt

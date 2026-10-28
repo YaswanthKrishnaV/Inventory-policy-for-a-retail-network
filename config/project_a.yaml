@@ -19,7 +19,8 @@ calendar:
   last_data_day: 1941       # sales exist through d_1941
   forecast_horizon: 28      # brief asks for 28-day-ahead quantiles
   refit_every: 28           # re-forecast inside the replay every N days (decision §13.5)
-  backtest_cutoffs: [1801, 1829, 1857]   # 28-day forecast backtests (windows end <= d_1885)
+  backtest_cutoffs: [1801, 1829, 1857]   # used by `python -m project_a.backtest` with no args
+  backtest_offsets: [84, 56, 28]        # end-to-end run: forecast backtests at cutoff - offset (28-day windows end <= cutoff)
   tuning_offsets: [56, 84, 112]         # policy knobs tuned on 56-day replays at cutoff - offset (end <= cutoff)
 
 costs:
@@ -81,7 +82,7 @@ forecast:
     dormant_resume: true        # dormant-at-origin items forecast at pre-dormancy rate x empirical resume factor
 
 policy:
-  extend_days: 42               # forecast means extended by weekday pattern beyond 28 days (DC protection interval)
+  extend_days: 56               # forecast means extended by weekday pattern beyond 28 days (DC protection interval)
   n_paths_dc: 200               # coherent DC sample paths used for echelon targets
   knobs:                        # tuned on backtest cutoffs (project_a/tune.py); defaults here
     alpha_store: {FOODS_1: 0.97, FOODS_2: 0.97, FOODS_3: 0.97}
@@ -90,16 +91,26 @@ policy:
     prebuild: true              # pre-ship ahead of days where the DC outbound cap would bind
     lookahead_days: 6
     cap_eta: 0.97               # plan to use at most this share of outbound capacity
+    future_orders: 4            # future weekly POs considered when finding the next supplier delivery
+    store_buffer: 1.0           # share of store target levels the DC order must leave in stores at the end of its window
+
+stress:                         # Task 5 (see project_a/stress.py, DECISION_LOG D-27)
+  dept: FOODS_3
+  from_day: 14                  # test-day index: POs placed in weeks 3-5 are hit
+  to_day: 35
+  multiplier: 2.0
+  warn_days: 14
 
 tuning:
   n_sims: 6                     # Monte Carlo runs per knob setting per tuning cutoff
   fill_margin: 0.005            # require mean fill >= target + margin on every tuning cutoff
   penalty_per_point: 20000      # $ penalty per fill-rate point below that
-  rounds: 2
+  rounds: 1                     # one coordinate-descent pass (each setting = 3 cutoffs x n_sims replays)
   grid:
-    alpha_store: [0.90, 0.95, 0.97, 0.99, 0.995]
-    beta_dc: [0.90, 0.95, 0.97, 0.99, 0.995]
-    store_window: [2, 3, 4, 5]
+    beta_dc: [0.95, 0.97, 0.99, 0.995]
+    alpha_store: [0.95, 0.97, 0.99]
+    store_buffer: [0.5, 1.0, 1.5]
+    store_window: [2, 3, 4]
 
 simulation:
   n_sims: 100
