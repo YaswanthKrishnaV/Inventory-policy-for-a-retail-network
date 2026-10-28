@@ -1,0 +1,25 @@
+  fit: 2 chains x 600 draws; worst R-hat 1.127 (alpha[Channel2]), min ESS 9
+rep 0 Channel0: true 0.90  posterior 0.61 [0.33, 1.03]  covered  R-hat 1.018
+rep 0 Channel1: true 1.60  posterior 1.61 [1.33, 1.95]  covered  R-hat 1.009
+rep 0 Channel2: true 0.60  posterior 0.68 [0.32, 1.15]  covered  R-hat 1.035
+rep 0 Channel3: true 2.20  posterior 2.25 [1.89, 2.58]  covered  R-hat 1.024
+rep 0 Channel4: true 1.30  posterior 1.31 [1.03, 1.57]  covered  R-hat 1.025
+   alpha Channel0: true 0.50 post 0.39;  ec true 1.00 post 1.30
+   alpha Channel1: true 0.30 post 0.32;  ec true 0.70 post 0.85
+   alpha Channel2: true 0.60 post 0.50;  ec true 1.50 post 1.02
+   alpha Channel3: true 0.40 post 0.43;  ec true 1.20 post 1.33
+   alpha Channel4: true 0.20 post 0.25;  ec true 0.90 post 1.34
+   alpha Organic: true 0.50 post 0.35;  ec true 1.00 post 1.24
+  fit: 2 chains x 600 draws; worst R-hat 1.050 (alpha[Channel0]), min ESS 24
+rep 1 Channel0: true 0.90  posterior 0.80 [0.35, 1.36]  covered  R-hat 1.044
+rep 1 Channel1: true 1.60  posterior 1.37 [1.05, 1.77]  covered  R-hat 1.008
+rep 1 Channel2: true 0.60  posterior 1.12 [0.51, 1.81]  covered  R-hat 1.041
+rep 1 Channel3: true 2.20  posterior 2.20 [1.88, 2.59]  covered  R-hat 0.999
+rep 1 Channel4: true 1.30  posterior 1.44 [1.14, 1.81]  covered  R-hat 1.003
+   alpha Channel0: true 0.50 post 0.52;  ec true 1.00 post 0.90
+   alpha Channel1: true 0.30 post 0.39;  ec true 0.70 post 1.10
+   alpha Channel2: true 0.60 post 0.72;  ec true 1.50 post 0.81
+   alpha Channel3: true 0.40 post 0.48;  ec true 1.20 post 1.64
+   alpha Channel4: true 0.20 post 0.19;  ec true 0.90 post 0.80
+   alpha Organic: true 0.50 post 0.51;  ec true 1.00 post 0.45
+coverage of 90% intervals: 100% (10 intervals)

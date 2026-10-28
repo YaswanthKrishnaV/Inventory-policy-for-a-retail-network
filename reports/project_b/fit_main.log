@@ -1,0 +1,27 @@
+  fit: 4 chains x 1000 draws; worst R-hat 1.030 (alpha[Channel2]), min ESS 109
+fit 433s
+  alpha[Channel0]              rhat 1.015 ess 207
+  ec[Channel0]                 rhat 1.007 ess 372
+  eta[Channel0]                rhat 1.012 ess 272
+  alpha[Channel1]              rhat 1.025 ess 127
+  ec[Channel1]                 rhat 1.012 ess 575
+  eta[Channel1]                rhat 1.007 ess 469
+  alpha[Channel2]              rhat 1.030 ess 137
+  ec[Channel2]                 rhat 1.006 ess 510
+  eta[Channel2]                rhat 1.004 ess 351
+  alpha[Channel3]              rhat 1.026 ess 109
+  ec[Channel3]                 rhat 1.004 ess 550
+  eta[Channel3]                rhat 1.019 ess 263
+  alpha[Channel4]              rhat 1.010 ess 168
+  ec[Channel4]                 rhat 1.007 ess 645
+  eta[Channel4]                rhat 1.007 ess 374
+  alpha[Organic]               rhat 1.019 ess 130
+  ec[Organic]                  rhat 1.008 ess 465
+  eta[Organic]                 rhat 1.002 ess 492
+  roi[Channel0]                rhat 1.015 ess 211
+  roi[Channel1]                rhat 1.010 ess 239
+  roi[Channel2]                rhat 1.007 ess 262
+  roi[Channel3]                rhat 1.020 ess 218
+  roi[Channel4]                rhat 1.007 ess 303
+  beta_org                     rhat 1.023 ess 195
+  mean log sigma               rhat 1.004 ess 629

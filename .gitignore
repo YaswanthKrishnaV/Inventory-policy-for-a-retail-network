@@ -1,8 +1,9 @@
-data/
+data/*
+!data/geo_all_channels.csv
 cache/
 __pycache__/
 *.pyc
 .DS_Store
 .venv/
 project_a/forecasts.csv.gz
-memo/memo_A.html
+memo/*.html
