@@ -121,9 +121,11 @@ def write(cfg, d, t0, t1, fits, roi_draws, acc, acc_train, scen, alt, voi, desig
     for key, s in scen.items():
         lbl = f"{s['total'] / 1e6:.0f}M" + (" relaxed" if s["relaxed"] else "") + ("" if s["feasible"] or s["relaxed"] else " (±30% floor)")
         cells = [f"{s['spend'][m] / 1e6:.2f}M ({100 * (s['k'][m] - 1):+.0f}%)" for m in range(len(d.channels))]
+        same = not s["feasible"] and not s["relaxed"]
         md.append(f"| {lbl} | " + " | ".join(cells) + f" | {s['spend'].sum() / 1e6:.2f}M | {s['revenue'].mean() / 1e6:.2f}M "
-                  f"[{q(s['revenue'], .05) / 1e6:.2f}, {q(s['revenue'], .95) / 1e6:.2f}] | {s['uplift'].mean() / 1e3:,.0f}k "
-                  f"[{q(s['uplift'], .05) / 1e3:,.0f}, {q(s['uplift'], .95) / 1e3:,.0f}] | {(s['uplift'] > 0).mean():.2f} |")
+                  f"[{q(s['revenue'], .05) / 1e6:.2f}, {q(s['revenue'], .95) / 1e6:.2f}] | " +
+                  ("— (today's mix by construction) | — |" if same else
+                   f"{s['uplift'].mean() / 1e3:,.0f}k [{q(s['uplift'], .05) / 1e3:,.0f}, {q(s['uplift'], .95) / 1e3:,.0f}] | {(s['uplift'] > 0).mean():.2f} |"))
     md += ["", "Calibrated-model allocations at 18M (sensitivity): " + "; ".join(
         f"{k}: " + ", ".join(f"{c} {v['spend'][m] / 1e6:.2f}M" for m, c in enumerate(d.channels)) for k, v in alt.items()), "",
         "## Value of information and next experiment", "",

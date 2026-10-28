@@ -57,10 +57,11 @@ experiment:                     # vendor-reported Channel3 geo-lift test (we che
 sampler:
   chains: 4
   warmup: 1000
-  draws: 600
+  draws: 800
   thin: 1
   seed: 20240115
   target_accept: 0.3
+  robustness: {chains: 2, warmup: 800, draws: 600}   # weekly-FE / no-sentiment / no-organic checks (runtime)
 
 roi:
   window_weeks: 52              # average ROI over the last 52 training weeks
@@ -73,9 +74,9 @@ budget:
   main_total: 18000000
 
 next_experiment:
-  durations_weeks: [4, 6, 8]
-  n_treat_geos: [8, 12, 16]
-  spend_change: [-1.0, 0.5, 1.0]   # -100% (switch-off), +50%, +100%
+  durations_weeks: [8, 12, 16]
+  n_treat_geos: [10, 20]           # of 40 geos (stratified by population)
+  spend_change: [-1.0, 1.0, 2.0]   # switch-off, double, triple
   n_sims: 400
   alpha: 0.10
   target_power: 0.8

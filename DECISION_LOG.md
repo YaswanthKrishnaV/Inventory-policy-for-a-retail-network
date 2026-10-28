@@ -88,3 +88,28 @@ SLSQP failed on the piecewise-linear interpolated response curves. The curves ar
 
 ### B-D07 · Sampler settings for the deliverable run
 4 chains × 1,000 warm-up × 600 draws (the first fit with 1,500 × 1,000 reached R-hat ≤ 1.03, ESS ≥ 109; shorter chains keep the full 7-model pipeline within the 2-hour budget on a laptop). Convergence is reported for every variant.
+
+### B-A08 · Mixing problem after adding geo controls, and the fix
+- With geo-specific controls, the one-parameter-at-a-time Metropolis moves mixed poorly: worst R-hat **1.078**, min ESS **30** (4 × 1,000 + 600).
+- Cause: each channel's adstock decay, half-saturation and ROI are strongly correlated in the posterior (a slower decay or later saturation can be traded for a different ROI).
+- Fix (B-D08): one **joint 3-D adaptive Metropolis** block per channel (Haario et al.: the proposal covariance is learned from the chain's own warm-up history; adaptation stops after warm-up so the chain is valid). Same budget: worst R-hat **1.042**, min ESS **130**; all ROI parameters ≤ 1.03. Remaining R-hat > 1.01 is on half-saturation (`ec`), a weakly identified nuisance.
+
+### B-D08 · Sampler: adaptive joint block per channel; 4 chains × 1,000 warm-up × 800 draws
+
+## 2026-10-29 — First full run (85 min on 2 cores) and fixes
+
+### B-A09 · Results of the first complete run (superseded numerically by B-A11 after the fixes below; fits identical in spec)
+- Average ROI (last 52 training weeks): Ch0 1.30 [0.29, 2.97], Ch1 1.03 [0.31, 2.27], Ch2 1.20 [0.46, 2.21], Ch3 0.94 [0.38, 1.71], Ch4 1.62 [0.36, 3.35].
+- **Marginal ROI below 1 for every channel** (0.51–0.77): at current spend the next unit returns less than it costs → the 13% cut to 18M is directionally right; the question is where to cut.
+- 18M plan: Ch1 −30%, Ch3 −30%, Ch2 −15%, Ch0 −5%, Ch4 +23%; uplift vs today's mix +316k [−1.09M, +1.76M], P(> 0) = 0.63 — weak evidence; report honestly.
+- Hold-out: national WAPE 6.3%, bias −6.2% (under-forecast of the Q4-2023 level; trend held flat), 90% coverage 0.85; geo WAPE 21.9%.
+- Calibration barely matters: uncalibrated model already implies **1.10 [0.38, 2.01]** for the vendor's test (vendor 0.8 [0.3, 1.3]); full trust moves 18M allocation by < 0.4M in any channel.
+- Without sentiment, Channel3 ROI collapses to 0.27 — sentiment is an important confounder (but that fit did not converge, R-hat 1.18).
+
+### B-A10 · Problems found in the first run's outputs, and fixes
+1. **12M "floor" uplift was wrong** (+2.27M, P = 1.00): it compared spending 14.54M with today's mix scaled to 12M. Fixed: uplift always compares at equal total spend (at the floor it is today's mix by construction → reported as "—").
+2. **EVPPI tie** (Ch0 and Ch4 both 316k, equal to the 18M uplift): the per-bin allocation used the coarse 5% grid while the baseline used the fine optimiser, so coarse-grid losses leaked into the comparison. Fixed: the fine optimiser everywhere.
+3. **No design reached useful power** (≤ 0.18; minimum detectable iROAS 5–20). Geo-week revenue noise is large (residual ≈ 26% of a geo-week's revenue), so 8-week tests on 8–16 geos cannot see a channel whose ROI is ~1. Grid widened (10 or 20 treated geos; 8/12/16 weeks; switch-off / double / triple spend) and pre-period lengthened 8 → 26 weeks (a longer baseline averages out noise).
+4. Weekly-fixed-effects fit took 56 min: the 145×145 shared-block cross-products were recomputed on every likelihood call though they only change with σ. Cached (`linear.shared_terms`): 13 ms per call instead of tens.
+5. No-sentiment sensitivity did not converge: robustness fits now 2 × 800 + 600.
+6. Added `--reuse-fits` (regenerate all outputs from cached posteriors without refitting).

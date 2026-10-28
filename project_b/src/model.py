@@ -274,8 +274,12 @@ class Model:
     def logml(self, st, H, cfac, D=None):
         mu_u, lam_u = self.prior_u(st, cfac)
         ex = self.extra_of(D, st) if self.cal is not None else None
+        key = st.sigma.tobytes()
+        if getattr(self, "_sh_key", None) != key:
+            self._sh = linear.shared_terms(self.d.W, self.d.y, self.d.mask, st.sigma, self.mu_s, self.lam_s)
+            self._sh_key = key
         post = linear.posterior(self.Z_of(H), self.d.W, self.d.y, self.d.mask, st.sigma, mu_u, lam_u,
-                                self.mu_s, self.lam_s, extra=ex)
+                                self.mu_s, self.lam_s, extra=ex, shared=self._sh)
         return post
 
     # ---------------------------------------------------------------- sampler
@@ -294,7 +298,9 @@ class Model:
         D = self.lift_coefs(self.cal["channel"], st.alpha[self.cal["channel"]], st.ec[self.cal["channel"]]) if self.cal else None
         post = self.logml(st, H, cfac, D)
         cur = post.logml
-        scale_ae = np.full((J, 2), 0.15)
+        chol_blk = np.stack([np.eye(3) * 0.12 for _ in range(J)])
+        lam_blk = np.ones(J)
+        hist = [[] for _ in range(J)]
         scale_r = np.full(J, 0.15)
         scale_eta = np.full(J, 0.3)
         acc = {k: np.zeros(J) for k in ("ae", "r", "eta")}
@@ -302,15 +308,26 @@ class Model:
         keep = dict(alpha=[], ec=[], roi=[], beta_org=[], eta=[], sigma=[], u=[], s=[], logml=[])
         t0 = time.time()
         for it in range(n_tot):
-            # 1) adstock + saturation, per channel (collapsed)
+            # 1) joint (adstock decay, half-saturation, ROI-or-organic-beta) per channel, collapsed.
+            #    Adaptive Metropolis (Haario et al.): after 150 warm-up iterations the proposal uses the
+            #    empirical covariance of the chain's own history, so the strong decay/saturation/ROI
+            #    correlations are followed instead of fought.
             for j in range(J):
-                z_old = np.array([special.logit(st.alpha[j]), np.log(st.ec[j])])
-                z_new = z_old + scale_ae[j] * rng.standard_normal(2)
+                last = np.log(st.roi[j]) if j < M else np.log(st.beta_org)
+                z_old = np.array([special.logit(st.alpha[j]), np.log(st.ec[j]), last])
+                z_new = z_old + lam_blk[j] * (chol_blk[j] @ rng.standard_normal(3))
                 a_new, e_new = special.expit(z_new[0]), np.exp(z_new[1])
-                lp_new_prior = self.pr.lp_alpha_logit(z_new[0]) + self.pr.lp_ec_log(z_new[1])
-                if not np.isfinite(lp_new_prior):
+                lp_new = self.pr.lp_alpha_logit(z_new[0]) + self.pr.lp_ec_log(z_new[1])
+                lp_old = self.pr.lp_alpha_logit(z_old[0]) + self.pr.lp_ec_log(z_old[1])
+                if j < M:
+                    lp_new += self.pr.lp_roi_log(z_new[2]); lp_old += self.pr.lp_roi_log(z_old[2])
+                else:
+                    lp_new += self.pr.lp_halfnormal_log(z_new[2], self.pr.org_scale)
+                    lp_old += self.pr.lp_halfnormal_log(z_old[2], self.pr.org_scale)
+                if it < n_warmup:
+                    hist[j].append(z_old)
+                if not np.isfinite(lp_new):
                     continue
-                lp_old_prior = self.pr.lp_alpha_logit(z_old[0]) + self.pr.lp_ec_log(z_old[1])
                 Hn = H.copy(); Hn[j] = self.curve(j, a_new, e_new)
                 cfn = cfac.copy()
                 if j < M:
@@ -318,10 +335,14 @@ class Model:
                 Dn = D
                 if self.cal is not None and j == self.cal["channel"]:
                     Dn = self.lift_coefs(j, a_new, e_new)
-                stn = State(**{**st.__dict__}); stn.alpha = st.alpha.copy(); stn.ec = st.ec.copy()
+                stn = State(**{**st.__dict__}); stn.alpha = st.alpha.copy(); stn.ec = st.ec.copy(); stn.roi = st.roi.copy()
                 stn.alpha[j], stn.ec[j] = a_new, e_new
+                if j < M:
+                    stn.roi[j] = np.exp(z_new[2])
+                else:
+                    stn.beta_org = float(np.exp(z_new[2]))
                 pn = self.logml(stn, Hn, cfn, Dn)
-                if np.log(rng.random()) < pn.logml + lp_new_prior - cur - lp_old_prior:
+                if np.log(rng.random()) < pn.logml + lp_new - cur - lp_old:
                     st, H, cfac, D, post, cur = stn, Hn, cfn, Dn, pn, pn.logml
                     acc["ae"][j] += 1
             # 2) ROI (paid) / organic beta
@@ -366,15 +387,21 @@ class Model:
             st.sigma = np.where(ok, np.exp(ln), st.sigma)
             post = self.logml(st, H, cfac, D)
             cur = post.logml
-            # adaptation during warmup (target ~0.3 acceptance)
+            # adaptation during warmup
             if it < n_warmup and (it + 1) % 50 == 0:
-                for k, sc in (("ae", scale_ae), ("r", scale_r), ("eta", scale_eta)):
-                    rate = acc[k] / 50
-                    f = np.exp(np.clip(rate - 0.3, -0.5, 0.5) * 2)
-                    if sc.ndim == 2:
-                        sc *= f[:, None]
-                    else:
-                        sc *= f
+                rate = acc["ae"] / 50
+                lam_blk *= np.exp(np.clip(rate - 0.25, -0.5, 0.5) * 2)
+                if it + 1 >= 150:
+                    for j in range(J):
+                        hz = np.array(hist[j][-600:])
+                        cov = np.cov(hz.T) * 2.38 ** 2 / 3 + 1e-6 * np.eye(3)
+                        try:
+                            chol_blk[j] = np.linalg.cholesky(cov)
+                        except np.linalg.LinAlgError:
+                            pass
+                for k, sc in (("r", scale_r), ("eta", scale_eta)):
+                    sc *= np.exp(np.clip(acc[k] / 50 - 0.3, -0.5, 0.5) * 2)
+                for k in acc:
                     acc[k][:] = 0
             if it >= n_warmup:
                 for k in ("alpha", "ec", "roi", "eta", "sigma", "u", "s"):

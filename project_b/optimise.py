@@ -86,7 +86,7 @@ def scenario(curves, last13, total, bound, relaxed=False):
         k = np.full(M, 1 - bound if total < last13.sum() else 1 + bound)
     else:
         k = optimise(curves.mean(0), last13, total, lo, hi)
-    k_same = np.full(M, total / last13.sum())                     # today's mix, scaled to the budget
+    k_same = np.full(M, (k * last13).sum() / last13.sum())      # today's mix scaled to the SAME total spend
     rev = interp(curves, k).sum(1)
     rev_same = interp(curves, np.clip(k_same, 0, GRID[-1])).sum(1)
     # marginal ROI at the optimum (finite difference on each draw's curve)
@@ -105,7 +105,7 @@ def value_of_information(curves, last13, total, bound, n_bins=10):
     lo, hi = np.full(M, 1 - bound), np.full(M, 1 + bound)
     k_star = optimise(curves.mean(0), last13, total, lo, hi)
     base = interp(curves, k_star).sum(1).mean()
-    perfect = np.mean([interp(c[None], greedy_alloc(c, last13, total, lo, hi)).sum() for c in curves])
+    perfect = np.mean([interp(c[None], optimise(c, last13, total, lo, hi, step=0.01)).sum() for c in curves])
     evpi = perfect - base
     evppi = np.zeros(M)
     for m in range(M):
@@ -118,7 +118,7 @@ def value_of_information(curves, last13, total, bound, n_bins=10):
             if not sel.any():
                 continue
             cm = curves[sel].mean(0)
-            kb = greedy_alloc(cm, last13, total, lo, hi)
+            kb = optimise(cm, last13, total, lo, hi)
             val += sel.mean() * interp(curves[sel], kb).sum(1).mean()
         evppi[m] = val - base
     return dict(evpi=float(evpi), evppi=np.maximum(evppi, 0.0), k_star=k_star)

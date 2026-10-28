@@ -57,6 +57,7 @@ def main(argv=None):
     ap.add_argument("--config", default=None)
     ap.add_argument("--fast", action="store_true", help="short chains; skip sensitivity variants")
     ap.add_argument("--smoke", action="store_true", help=argparse.SUPPRESS)   # tiny chains, for testing the pipeline
+    ap.add_argument("--reuse-fits", action="store_true", help="load fitted posteriors from cache/ instead of refitting")
     a = ap.parse_args(argv)
     T0 = time.time()
     log = lambda s: print(f"[{time.time() - T0:6.0f}s] {s}", flush=True)
@@ -76,18 +77,35 @@ def main(argv=None):
     audit.main([])
 
     # ---------------------------------------------------------------- fits
-    fits = {}
     budget_variant = cfg["experiment"]["use_for_budget"]
-    fits["uncalibrated"] = fit_variant("geo, uncalibrated (main)", d, cfg, log)
+    rb = cfg["sampler"]["robustness"]
+    rkw = dict(chains=rb["chains"], warmup=rb["warmup"], draws=rb["draws"])
+    specs = {"uncalibrated": ("geo, uncalibrated (main)", {}, None, False, {})}
     for name, mult in cfg["experiment"]["variants"].items():
         if mult is not None:
-            fits[name] = fit_variant(f"geo, calibrated ({name})", d, cfg, log, se_mult=mult)
-    fits["national"] = fit_variant("national totals", d, cfg, log, national=True)
+            specs[name] = (f"geo, calibrated ({name})", {}, mult, False, {})
+    specs["national"] = ("national totals", {}, None, True, {})
     if not (a.fast or a.smoke):
-        fits["weekly_fe"] = fit_variant("geo, weekly fixed effects", d, cfg, log, overrides={"model": {"baseline": "weekly_fe"}})
-        fits["no_sentiment"] = fit_variant("geo, without sentiment", d, cfg, log,
-                                           overrides={"model": {"controls": ["competitor_sales_control"]}})
-        fits["no_organic"] = fit_variant("geo, without organic", d, cfg, log, overrides={"model": {"include_organic": False}})
+        specs["weekly_fe"] = ("geo, weekly fixed effects", {"model": {"baseline": "weekly_fe"}}, None, False, rkw)
+        specs["no_sentiment"] = ("geo, without sentiment", {"model": {"controls": ["competitor_sales_control"]}}, None, False, rkw)
+        specs["no_organic"] = ("geo, without organic", {"model": {"include_organic": False}}, None, False, rkw)
+    import pickle as _pk
+    cache_file = out_path(cfg, "cache_dir") / f"fits_{hs}{'_fast' if a.fast else ''}{'_smoke' if a.smoke else ''}.pkl"
+    cached = _pk.loads(cache_file.read_bytes()) if (a.reuse_fits and cache_file.exists()) else {}
+    fits = {}
+    for name, (label, ov, mult, nat, kw) in specs.items():
+        if name in cached:
+            c = copy.deepcopy(cfg)
+            for k, v in ov.items():
+                c[k] = {**c[k], **v}
+            des = build_design(d, c, national=nat)
+            m = Model(des, c, calibration=calibration_spec(d, des, c, mult) if mult is not None else None,
+                      fixed_eta=1e-3 if nat else None)
+            fits[name] = (m, *cached[name])
+            log(f"  loaded {label} from cache")
+        else:
+            fits[name] = fit_variant(label, d, cfg, log, overrides=ov, se_mult=mult, national=nat, **kw)
+    cache_file.write_bytes(_pk.dumps({k: (v[1], v[2]) for k, v in fits.items()}))
     main_m, main_post, main_diag = fits[budget_variant]
     f_main = flat(main_post)
 

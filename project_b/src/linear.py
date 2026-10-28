@@ -35,19 +35,27 @@ class Posterior:
     extra: dict | None = None
 
 
-def posterior(Z, W, y, mask, sigma, mu_u, lam_u, mu_s, lam_s, extra=None, want_logml=True) -> Posterior:
+def shared_terms(W, y, mask, sigma, mu_s, lam_s):
+    """Pieces that depend only on sigma (not on media transforms): cache them across calls."""
+    w = mask / sigma[:, None] ** 2
+    Ww = W * w[:, :, None]
+    C = np.einsum("gtq,gtr->qr", Ww, W) + np.diag(lam_s)
+    c = np.einsum("gtq,gt->q", Ww, y) + lam_s * mu_s
+    return dict(w=w, C=C, c=c)
+
+
+def posterior(Z, W, y, mask, sigma, mu_u, lam_u, mu_s, lam_s, extra=None, want_logml=True, shared=None) -> Posterior:
     """Z (G,T,p), W (G,T,q), y (G,T), mask (G,T) bool (rows in the likelihood), sigma (G,),
     mu_u/lam_u (G,p), mu_s/lam_s (q,). extra: dict(a_u (G,p), a_s (q,), obs, se) for one
     additional observation obs ~ N(a_u.u + a_s.s, se^2)."""
     G, T, p = Z.shape
     q = W.shape[2]
-    w = mask / sigma[:, None] ** 2                          # (G, T) precision weights
+    sh = shared if shared is not None else shared_terms(W, y, mask, sigma, mu_s, lam_s)
+    w, C, c = sh["w"], sh["C"], sh["c"]                      # (G, T) precision weights; shared block
     Zw = Z * w[:, :, None]
     A = np.einsum("gtp,gtr->gpr", Zw, Z) + lam_u[:, :, None] * np.eye(p)[None]
     B = np.einsum("gtp,gtq->gpq", Zw, W)
     a = np.einsum("gtp,gt->gp", Zw, y) + lam_u * mu_u
-    C = np.einsum("gtq,gtr->qr", W * w[:, :, None], W) + np.diag(lam_s)
-    c = np.einsum("gtq,gt->q", W * w[:, :, None], y) + lam_s * mu_s
     L = np.linalg.cholesky(A)
     Ainv_B = _batched_solve(L, B)
     Ainv_a = _batched_solve(L, a[:, :, None])[:, :, 0]

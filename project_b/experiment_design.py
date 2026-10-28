@@ -6,7 +6,7 @@ For a channel and a candidate design (number of treated geos, weeks, spend chang
   3. geos    = stratified random assignment (pair geos by population, treat one of each pair);
   4. effect  = the revenue change the model implies for that spend change in the treated geos,
                for a posterior draw (so ROI uncertainty enters the power), incl. 4 cool-down weeks;
-  5. analysis = difference-in-differences: per-geo (test + cool-down mean − 8-week pre mean),
+  5. analysis = difference-in-differences: per-geo (test + cool-down mean − 26-week pre mean),
                treated vs control, t-test across geos (geo-clustered), two-sided at alpha.
 Power = share of simulations where the lift is detected. Also reported: the minimum detectable
 iROAS at 80% power and the test's cost (spend moved x model ROI).
@@ -33,7 +33,7 @@ def residuals(model, f_sub):
     return res[:, d.mask[0]]
 
 
-def simulate_power(model, f_sub, m, n_treat, weeks, change, n_sims, alpha, rng, pre=8, cool=4):
+def simulate_power(model, f_sub, m, n_treat, weeks, change, n_sims, alpha, rng, pre=26, cool=4):
     d = model.d
     res = residuals(model, f_sub) if not hasattr(model, "_res_cache") else model._res_cache
     model._res_cache = res
@@ -71,7 +71,6 @@ def simulate_power(model, f_sub, m, n_treat, weeks, change, n_sims, alpha, rng, 
         est.append(lift_total / spend_moved)
         removed_spend.append(spend_moved)
         true_iroas.append(effect[:, postw].sum() / spend_moved)
-        se_iroas = se * treat.sum() * len(postw) / abs(spend_moved)
     z = stats.norm.ppf(1 - alpha / 2) + stats.norm.ppf(0.8)
     se_iroas = np.std(np.array(est) - np.array(true_iroas))
     return dict(power=float(np.mean(hits)), mde_iroas=float(z * se_iroas), se_iroas=float(se_iroas),
