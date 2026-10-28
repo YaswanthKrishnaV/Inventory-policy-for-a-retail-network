@@ -1,0 +1,329 @@
+{
+ "geos": 40,
+ "weeks": 156,
+ "first_week": "2021-01-25",
+ "last_week": "2024-01-15",
+ "missing_values": 0,
+ "channels": {
+  "Channel0": {
+   "cost_per_impression": 0.007332723135848412,
+   "cv": 3.3187037443126094e-08,
+   "zero_spend_share": 0.12099358974358974,
+   "spend_total": 40501713.0799782,
+   "spend_last13": 3796695.598667
+  },
+  "Channel1": {
+   "cost_per_impression": 0.009641231543844806,
+   "cv": 3.346979009279164e-08,
+   "zero_spend_share": 0.2791666666666667,
+   "spend_total": 31320298.2023646,
+   "spend_last13": 3201633.3912996002
+  },
+  "Channel2": {
+   "cost_per_impression": 0.007430924412665986,
+   "cv": 3.47532574670272e-08,
+   "zero_spend_share": 0.6426282051282052,
+   "spend_total": 12079349.341539,
+   "spend_last13": 1443920.10889
+  },
+  "Channel3": {
+   "cost_per_impression": 0.007792840481468118,
+   "cv": 3.3129939069364186e-08,
+   "zero_spend_share": 0.027083333333333334,
+   "spend_total": 87860358.248886,
+   "spend_last13": 7949520.189054
+  },
+  "Channel4": {
+   "cost_per_impression": 0.007791911599513699,
+   "cv": 3.309546228385626e-08,
+   "zero_spend_share": 0.13141025641025642,
+   "spend_total": 47730683.47771817,
+   "spend_last13": 4373347.979245
+  }
+ },
+ "spend_variance_decomposition": {
+  "Channel0": {
+   "common_week": 0.2113187327013382,
+   "geo": 0.0058592644184902055,
+   "geo_x_week": 0.7828220028801716
+  },
+  "Channel1": {
+   "common_week": 0.2303941604164587,
+   "geo": 0.00437533930167357,
+   "geo_x_week": 0.7652305002818678
+  },
+  "Channel2": {
+   "common_week": 0.2028353343499597,
+   "geo": 0.004343538547736544,
+   "geo_x_week": 0.7928211271023038
+  },
+  "Channel3": {
+   "common_week": 0.34659662000460634,
+   "geo": 0.004926712438660309,
+   "geo_x_week": 0.6484766675567334
+  },
+  "Channel4": {
+   "common_week": 0.2900105190807083,
+   "geo": 0.004195985254824604,
+   "geo_x_week": 0.705793495664467
+  }
+ },
+ "spend_per_capita_cv_across_geos": {
+  "Channel0": 0.056201271748468534,
+  "Channel1": 0.06715042192037185,
+  "Channel2": 0.12525129718010738,
+  "Channel3": 0.03652520219389121,
+  "Channel4": 0.0486096428353472
+ },
+ "correlation": {
+  "Channel0": {
+   "Channel0": 1.0,
+   "Channel1": 0.34,
+   "Channel2": 0.32,
+   "Channel3": 0.53,
+   "Channel4": 0.37,
+   "organic": 0.45,
+   "promo": 0.29,
+   "competitor_sales_control": 0.06,
+   "sentiment_score_control": 0.35,
+   "kpi": 0.41
+  },
+  "Channel1": {
+   "Channel0": 0.34,
+   "Channel1": 1.0,
+   "Channel2": 0.3,
+   "Channel3": 0.45,
+   "Channel4": 0.36,
+   "organic": 0.38,
+   "promo": 0.1,
+   "competitor_sales_control": 0.17,
+   "sentiment_score_control": 0.33,
+   "kpi": 0.29
+  },
+  "Channel2": {
+   "Channel0": 0.32,
+   "Channel1": 0.3,
+   "Channel2": 1.0,
+   "Channel3": 0.52,
+   "Channel4": 0.48,
+   "organic": 0.44,
+   "promo": 0.19,
+   "competitor_sales_control": 0.43,
+   "sentiment_score_control": 0.4,
+   "kpi": 0.15
+  },
+  "Channel3": {
+   "Channel0": 0.53,
+   "Channel1": 0.45,
+   "Channel2": 0.52,
+   "Channel3": 1.0,
+   "Channel4": 0.63,
+   "organic": 0.55,
+   "promo": 0.2,
+   "competitor_sales_control": 0.39,
+   "sentiment_score_control": 0.4,
+   "kpi": 0.47
+  },
+  "Channel4": {
+   "Channel0": 0.37,
+   "Channel1": 0.36,
+   "Channel2": 0.48,
+   "Channel3": 0.63,
+   "Channel4": 1.0,
+   "organic": 0.42,
+   "promo": 0.16,
+   "competitor_sales_control": 0.48,
+   "sentiment_score_control": 0.24,
+   "kpi": 0.35
+  },
+  "organic": {
+   "Channel0": 0.45,
+   "Channel1": 0.38,
+   "Channel2": 0.44,
+   "Channel3": 0.55,
+   "Channel4": 0.42,
+   "organic": 1.0,
+   "promo": 0.26,
+   "competitor_sales_control": 0.21,
+   "sentiment_score_control": 0.45,
+   "kpi": 0.3
+  },
+  "promo": {
+   "Channel0": 0.29,
+   "Channel1": 0.1,
+   "Channel2": 0.19,
+   "Channel3": 0.2,
+   "Channel4": 0.16,
+   "organic": 0.26,
+   "promo": 1.0,
+   "competitor_sales_control": 0.03,
+   "sentiment_score_control": 0.05,
+   "kpi": 0.08
+  },
+  "competitor_sales_control": {
+   "Channel0": 0.06,
+   "Channel1": 0.17,
+   "Channel2": 0.43,
+   "Channel3": 0.39,
+   "Channel4": 0.48,
+   "organic": 0.21,
+   "promo": 0.03,
+   "competitor_sales_control": 1.0,
+   "sentiment_score_control": 0.12,
+   "kpi": -0.12
+  },
+  "sentiment_score_control": {
+   "Channel0": 0.35,
+   "Channel1": 0.33,
+   "Channel2": 0.4,
+   "Channel3": 0.4,
+   "Channel4": 0.24,
+   "organic": 0.45,
+   "promo": 0.05,
+   "competitor_sales_control": 0.12,
+   "sentiment_score_control": 1.0,
+   "kpi": -0.01
+  },
+  "kpi": {
+   "Channel0": 0.41,
+   "Channel1": 0.29,
+   "Channel2": 0.15,
+   "Channel3": 0.47,
+   "Channel4": 0.35,
+   "organic": 0.3,
+   "promo": 0.08,
+   "competitor_sales_control": -0.12,
+   "sentiment_score_control": -0.01,
+   "kpi": 1.0
+  }
+ },
+ "revenue_per_conversion": {
+  "mean": 0.02000151333942308,
+  "sd": 9.917749577403713e-05
+ },
+ "kpi_per_capita_per_week_median": 19.264662039072668,
+ "budget": {
+  "last13_total": 20765117.2671556,
+  "floor_30pct": 14535582.087008918,
+  "ceiling_30pct": 26994652.447302278
+ },
+ "quarterly_spend_M": {
+  "Channel0": {
+   "2021-01": 2.75,
+   "2021-04": 2.66,
+   "2021-07": 2.93,
+   "2021-10": 4.44,
+   "2022-01": 2.79,
+   "2022-04": 2.95,
+   "2022-07": 3.65,
+   "2022-10": 3.63,
+   "2023-01": 2.99,
+   "2023-04": 3.26,
+   "2023-07": 3.68,
+   "2023-10": 3.97,
+   "2024-01": 0.81
+  },
+  "Channel1": {
+   "2021-01": 1.74,
+   "2021-04": 2.39,
+   "2021-07": 2.86,
+   "2021-10": 3.14,
+   "2022-01": 2.31,
+   "2022-04": 2.17,
+   "2022-07": 2.73,
+   "2022-10": 3.4,
+   "2023-01": 2.07,
+   "2023-04": 2.16,
+   "2023-07": 2.41,
+   "2023-10": 3.33,
+   "2024-01": 0.6
+  },
+  "Channel2": {
+   "2021-01": 0.51,
+   "2021-04": 0.67,
+   "2021-07": 1.15,
+   "2021-10": 1.46,
+   "2022-01": 0.53,
+   "2022-04": 0.47,
+   "2022-07": 1.26,
+   "2022-10": 1.62,
+   "2023-01": 0.61,
+   "2023-04": 0.59,
+   "2023-07": 1.25,
+   "2023-10": 1.74,
+   "2024-01": 0.21
+  },
+  "Channel3": {
+   "2021-01": 5.35,
+   "2021-04": 6.89,
+   "2021-07": 7.74,
+   "2021-10": 9.25,
+   "2022-01": 6.22,
+   "2022-04": 5.65,
+   "2022-07": 7.92,
+   "2022-10": 9.23,
+   "2023-01": 5.86,
+   "2023-04": 5.94,
+   "2023-07": 7.7,
+   "2023-10": 8.39,
+   "2024-01": 1.73
+  },
+  "Channel4": {
+   "2021-01": 3.02,
+   "2021-04": 3.64,
+   "2021-07": 4.38,
+   "2021-10": 4.78,
+   "2022-01": 3.36,
+   "2022-04": 3.07,
+   "2022-07": 4.2,
+   "2022-10": 4.92,
+   "2023-01": 3.24,
+   "2023-04": 3.12,
+   "2023-07": 4.39,
+   "2023-10": 4.59,
+   "2024-01": 1.0
+  }
+ },
+ "weekly_revenue_M_by_quarter": {
+  "2021-01": 7.985,
+  "2021-04": 8.413,
+  "2021-07": 8.266,
+  "2021-10": 8.501,
+  "2022-01": 8.64,
+  "2022-04": 8.4,
+  "2022-07": 8.436,
+  "2022-10": 8.578,
+  "2023-01": 8.346,
+  "2023-04": 8.577,
+  "2023-07": 8.37,
+  "2023-10": 8.832,
+  "2024-01": 8.388
+ },
+ "experiment_check": {
+  "test_geos": [
+   "Geo0",
+   "Geo1",
+   "Geo2",
+   "Geo3",
+   "Geo4",
+   "Geo5",
+   "Geo6",
+   "Geo7"
+  ],
+  "window": [
+   "2023-06-05",
+   "2023-07-24"
+  ],
+  "test_geo_weeks": 64,
+  "zero_spend_geo_weeks": 2,
+  "test_spend_pc_window": 19.471927399557785,
+  "test_spend_pc_pre": 17.887855340605842,
+  "control_spend_pc_window": 20.730062479604204,
+  "control_spend_pc_pre": 20.372343979396668,
+  "ratio_test_to_control_pre": 0.8780460097618868,
+  "ratio_test_to_control_window": 0.9393086691714381,
+  "ratio_test_to_control_all_other": 0.997890675337923,
+  "did_revenue_per_capita": -0.01583129302943742,
+  "did_spend_per_capita": 0.0012263535587444079
+ }
+}

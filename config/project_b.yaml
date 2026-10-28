@@ -1,0 +1,81 @@
+# Project B — every assumption in one place (DECISIONS.md explains each choice).
+
+paths:
+  data_file: data/geo_all_channels.csv     # Google Meridian sample data (Apache-2.0), commit ef585b5
+  out_dir: project_b
+  reports_dir: reports
+  cache_dir: cache
+
+data:
+  channels: [Channel0, Channel1, Channel2, Channel3, Channel4]
+  organic: Organic_channel0_impression
+  promo: Promo
+  controls: [competitor_sales_control, sentiment_score_control]
+  kpi: conversions
+  revenue_per_kpi: revenue_per_conversion
+  population: population
+
+holdout:
+  default_start: "2023-10-23"   # final 13 weeks; override with --holdout-start
+  weeks: 13
+
+model:
+  max_lag: 8                    # adstock lag window (Meridian default)
+  baseline: smooth              # smooth (trend knots + Fourier; extrapolates) | weekly_fe (robustness; ROI only)
+  knot_every_weeks: 8           # linear-spline trend knot spacing
+  fourier_order: 3              # annual seasonality harmonics
+  period_weeks: 52.18
+  forecast_trend: flat          # trend beyond the last training week is held at its last value
+
+priors:                         # standardised KPI scale (y = (kpi per capita - mean) / sd)
+  roi: {dist: lognormal, mu: 0.2, sigma: 0.9}        # Meridian default ROI prior, per paid channel
+  adstock_alpha: {dist: beta, a: 1.0, b: 1.0}        # Uniform(0,1), Meridian default
+  ec: {dist: truncnormal, mu: 0.8, sigma: 0.8, lo: 0.1, hi: 10.0}   # half-saturation, x median non-zero spend (Meridian default)
+  eta: {dist: halfnormal, scale: 0.5}                # relative geo spread of media effects
+  organic_beta: {dist: halfnormal, scale: 0.5}       # organic effect at full saturation (sd units)
+  tau_sd: 5.0                                        # geo intercepts ~ N(0, 5) (Meridian default)
+  baseline_sd: 1.0                                   # trend / seasonality coefficients ~ N(0, 1)
+  control_sd: 1.0                                    # controls & promo ~ N(0, 1) per sd of the control
+  sigma: {dist: halfnormal, scale: 1.0}              # residual sd per geo
+
+experiment:                     # vendor-reported Channel3 geo-lift test (we check it against the data)
+  channel: Channel3
+  geos: [Geo0, Geo1, Geo2, Geo3, Geo4, Geo5, Geo6, Geo7]
+  start: "2023-06-05"
+  weeks: 8
+  tail_weeks: 8                 # carry-over after the window counted in the lift
+  iroas: 0.8
+  ci90: [0.3, 1.3]
+  variants:                     # se multipliers: none = not used
+    uncalibrated: null
+    discounted: 3.0
+    full: 1.0
+  use_for_budget: uncalibrated  # D-B03: the data shows the switch-off did not happen
+
+sampler:
+  chains: 4
+  warmup: 1500
+  draws: 1000
+  thin: 1
+  seed: 20240115
+  target_accept: 0.3
+
+roi:
+  window_weeks: 52              # average ROI over the last 52 training weeks
+  mroi_step: 0.01               # marginal ROI: +1% spend
+
+budget:
+  totals: [12000000, 18000000, 24000000]
+  bound: 0.30                   # each channel within +-30% of its last-13-week spend
+  horizon_weeks: 13
+  main_total: 18000000
+
+next_experiment:
+  durations_weeks: [4, 6, 8]
+  n_treat_geos: [8, 12, 16]
+  spend_change: [-1.0, 0.5, 1.0]   # -100% (switch-off), +50%, +100%
+  n_sims: 400
+  alpha: 0.10
+  target_power: 0.8
+
+seed: 7
