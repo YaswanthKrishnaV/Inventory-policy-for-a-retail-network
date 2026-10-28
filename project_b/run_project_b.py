@@ -8,7 +8,7 @@ The model is trained strictly on weeks before --holdout-start; every reported nu
 experiment design) comes from that fit, and the 13 held-out weeks are only used to score the forecast.
 
 Outputs (project_b/): posterior.nc, roi_table.csv, budget_allocation.csv, forecast_13w.csv
-Reports (reports/):   results.md / results.json, figures, data audit, model comparison
+Reports (reports/project_b/):   results.md / results.json, figures, data audit, model comparison
 """
 from __future__ import annotations
 

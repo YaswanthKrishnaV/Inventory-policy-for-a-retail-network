@@ -1,7 +1,7 @@
 # DECISIONS.md — Project B
 
 Major modelling choices, the alternatives, and why. Full evidence in `DECISION_LOG.md` (IDs in
-brackets). Results quoted are from `reports/results.md` (hold-out = final 13 weeks).
+brackets). Results quoted are from `reports/project_b/results.md` (hold-out = final 13 weeks).
 
 ## 1. Framing: a budget decision with honest ranges [B-A01]
 The output is an 18M allocation for 13 weeks within ±30% of last-13-week spend per channel,

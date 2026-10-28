@@ -1,6 +1,6 @@
 # DATA_ISSUES.md — Project B (Meridian geo sample data)
 
-Reproduced by `python -m project_b.audit` (`reports/data_audit.md`, `reports/fig_experiment_check.png`).
+Reproduced by `python -m project_b.audit` (`reports/project_b/data_audit.md`, `reports/project_b/fig_experiment_check.png`).
 
 | # | Issue | How found | Size | Handling |
 |---|---|---|---|---|

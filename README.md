@@ -30,7 +30,7 @@ every output from cached posteriors in under a minute.
 | `project_b/roi_table.csv` | average and marginal ROI per channel, mean / median / 90% CI |
 | `project_b/budget_allocation.csv` | 12M / 18M / 24M allocations, revenue and uplift with 90% CI |
 | `project_b/forecast_13w.csv` | hold-out forecast per geo-week and national, with 90% intervals |
-| `reports/results.md` | every table quoted in the memo, all model variants, diagnostics |
+| `reports/project_b/results.md` | every table quoted in the memo, all model variants, diagnostics |
 
 ## How it works (one paragraph)
 A hierarchical Bayesian geo model: per-capita conversions = geo intercept + shared trend and

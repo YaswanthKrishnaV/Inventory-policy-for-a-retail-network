@@ -1,6 +1,6 @@
 # Marketing budget for next quarter — what each channel returns and where the 18M should go
 
-<div class="meta">To: CMO, CFO · From: Yaswanth Krishna · Data: 40 regions × 156 weeks (Jan 2021 – Jan 2024) · Model trained to 16 Oct 2023 and checked on the 13 weeks after · Ranges are 90% intervals · Source: <code>reports/results.md</code></div>
+<div class="meta">To: CMO, CFO · From: Yaswanth Krishna · Data: 40 regions × 156 weeks (Jan 2021 – Jan 2024) · Model trained to 16 Oct 2023 and checked on the 13 weeks after · Ranges are 90% intervals · Source: <code>reports/project_b/results.md</code></div>
 
 ## Recommendation
 

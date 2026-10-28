@@ -1,4 +1,4 @@
-"""Data audit for Project B -> reports/data_audit.md (+ figures). Numbers feed DATA_ISSUES.md.
+"""Data audit for Project B -> reports/project_b/data_audit.md (+ figures). Numbers feed DATA_ISSUES.md.
 
     python -m project_b.audit
 """

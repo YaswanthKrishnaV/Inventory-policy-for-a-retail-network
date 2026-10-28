@@ -14,7 +14,7 @@ an 18M allocation for the next 13 weeks with every channel within ±30% of its l
 spend; allocations at 12M and 24M; experiment calibration; next experiment; memo. Pipeline must
 take `--holdout-start`.
 
-### B-A02 · Data facts (`python -m project_b.audit` → `reports/data_audit.md`)
+### B-A02 · Data facts (`python -m project_b.audit` → `reports/project_b/data_audit.md`)
 - 40 geos × 156 weeks (2021-01-25 → 2024-01-15, Mondays), no missing values.
 - **Cost per impression is constant within every channel** (CV ≈ 3e-8): impressions = spend ÷ fixed CPM.
 - Zero-spend geo-weeks: Ch0 12%, Ch1 28%, **Ch2 64%**, Ch3 3%, Ch4 13%.
@@ -27,7 +27,7 @@ take `--holdout-start`.
 - Reported: Channel3 switched off in Geo0–7 for 8 weeks from 2023-06-05; vendor iROAS 0.8 (90% CI 0.3–1.3).
 - Data: **2 of 64** test geo-weeks have zero Channel3 spend. Test-geo spend per 1,000 people: 19.5 in the window vs 17.9 in the 8 weeks before. Test ÷ control spend per capita: 0.88 before, **0.94 during**, 1.00 in all other weeks. Difference-in-differences of spend per capita ≈ +0.001 (no drop).
 - Revenue per capita in test geos fell ~4% relative to control in the window (DiD −0.016 on ~0.39) — with no spend change, that cannot be caused by Channel3 being switched off.
-- Figure: `reports/fig_experiment_check.png`.
+- Figure: `reports/project_b/fig_experiment_check.png`.
 
 ### B-D01 · Plan decisions confirmed by Yaswanth (2026-10-28, "go with the defaults")
 1. Hand-written sampler in numpy/scipy (no PPL can be installed where the analysis runs), validated by parameter recovery.
@@ -55,7 +55,7 @@ Meridian's geo default (one effect per week) cannot forecast an end-of-window ho
 ### B-A04 · The linear algebra matches brute force (`tests/test_linear.py`)
 Posterior mean, marginal likelihood and draws (40k) match dense-matrix computations, with and without the extra lift-test observation (rtol 1e-8; sample covariance within 0.02).
 
-### B-A05 · Parameter recovery (`python -m project_b.recovery`, `reports/recovery.json`)
+### B-A05 · Parameter recovery (`python -m project_b.recovery`, `reports/project_b/recovery.json`)
 Simulated KPI from the model with known parameters using the real spend/organic/promo/control series; 2 replicates × 2 chains × 600 draws.
 
 | channel | true ROI | rep 1 posterior [90% CI] | rep 2 posterior [90% CI] |
@@ -116,7 +116,7 @@ SLSQP failed on the piecewise-linear interpolated response curves. The curves ar
 
 ## 2026-10-29 — Final run (18 min with cached main fits; 22 min from scratch on 2 cores)
 
-### B-A11 · Final results (`reports/results.md`, hold-out 2023-10-23 → 2024-01-15)
+### B-A11 · Final results (`reports/project_b/results.md`, hold-out 2023-10-23 → 2024-01-15)
 | channel | ROI (52w) | marginal ROI | P(ROI > 1) | 18M plan |
 |---|---|---|---|---|
 | Channel0 | 1.30 [0.29, 2.97] | 0.64 [0.12, 1.46] | 0.55 | 3.61M (−5%) |
