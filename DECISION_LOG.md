@@ -185,3 +185,66 @@ Two tests, run at three thresholds:
 - CA_2 regime change: how much pre-June-2015 history to use / weight in the forecast.
 - Partial-day stockouts: unquantifiable; goes into the memo's "data we'd need".
 - Event effects in the test window (Orthodox Easter, Cinco de Mayo, Mother's Day).
+
+---
+
+## 2026-10-28 — Environment change
+
+### D-19 · Model backend: scikit-learn HistGradientBoosting by default, LightGBM optional
+- Claude runs the pipeline in its cloud workspace (Yaswanth delegated running everything). PyPI is blocked there, so LightGBM can't be installed; scikit-learn's `HistGradientBoostingRegressor` is available.
+- Same algorithm family (histogram GBM, leaf-wise trees, native categoricals) and the same Poisson objective. Config switch `forecast.backend: sklearn | lightgbm`; hyper-parameters map 1:1.
+- Default = sklearn so every reported number is reproducible bit-for-bit on the Mac with one command. LightGBM 4.6.0 is installed on the Mac and can be compared later.
+- Data copied to the cloud workspace for execution; code and results are synced back to the Mac repo and committed there.
+- Row subsample 0.5 of ~3.2M training rows (2-core workspace; ~2–2.5 min per fit).
+
+## 2026-10-28 — Forecast (Task 2), first version
+
+### D-20 · Feature design
+- **Lag ≥ 28 everywhere**: one model forecasts every day 1..28 after the origin with no recursion; the same feature value is valid for training rows and forecast rows.
+- Features (31): lags 28/35/42/49/56; NaN-aware rolling means 7/28/56/112/364 and std 28 (all ending at t−28); same-weekday mean of 8 weeks; availability share (56d); CV; item-level mean across its 4 stores and this store's share; store×dept trend (28d vs 364d level — for the CA_2 step change); age since first sale; price, price vs 28 days earlier, vs historical max, vs the item's mean across stores; calendar (DOW, month, day of month, SNAP, event type, days to/since an event); dept and store as categoricals. Item id is excluded (1,437 levels; captured through its own lags).
+- Lag inputs = recovered demand (imputed on censored days), NaN on no-demand days so rolling stats average only real selling days.
+- Training: last 728 target days before the origin, **uncensored (OK) days only**; Poisson loss.
+- Forecast = 0 for series dormant at the origin and for items without a price at the origin (not ranged).
+
+### D-21 · Uncertainty model: two-level gamma-Poisson
+- `demand = Poisson(mu × G_item × G_day)`. `G_item` (variance s_p²) is shared by the item's 4 stores and persists over the horizon — the forecast-level error. `G_day` (variance s_d²) is independent day noise.
+- Both estimated **out of sample**: refit the model 28 days before the origin, forecast the last 28 observed days, match moments — daily cells by predicted-mean band (1/r), 28-day item-network sums by item-volume band (s_p²); s_d² follows from 1/r and s_p².
+- Why two levels: with independent daily noise only, DC (sum of 4 stores × many days) intervals would be far too narrow; the shared level shock gives realistic correlation across stores and over time.
+- DC quantiles come from summed store sample paths (coherent by construction).
+- Rejected: per-quantile models (quantiles don't add to the DC); a single NB per cell (no cross-store/temporal correlation).
+
+### A-11 · Backtest v1 (cutoffs d_1801, d_1829, d_1857; scored on uncensored days)
+
+Store level (bias = actual / forecast; >1 = under-forecast):
+
+| cutoff | recovered bias | raw bias | ma28 bias | recovered pinball | raw pinball | ma28 pinball | recovered 90% cov |
+|---|---|---|---|---|---|---|---|
+| d_1801 (Jan) | 1.095 | 1.180 | 1.184 | 0.237 | 0.247 | 0.269 | 0.95 |
+| d_1829 (Feb) | 1.083 | 1.145 | 1.099 | 0.229 | 0.236 | 0.239 | 0.96 |
+| d_1857 (Mar) | 1.036 | 1.096 | — | 0.233 | 0.236 | — | 0.95 |
+
+DC level: recovered bias 1.098 / 1.095 / 1.042, 90% coverage 0.93 / 0.94 / 0.94; ma28 DC 90% coverage only 0.75–0.79.
+- **Training on raw sales roughly doubles the under-forecast** (≈ +6–8 points of bias at every cutoff) — the quantified cost of ignoring censoring at forecast level; the $ version comes from the simulator.
+- The recovered model is best on every metric, but is still **under-forecasting by 4–10%**. ma28 is also low → demand was rising through Q1 2016 and lag-28 features can't see the last 27 days.
+- Store-level calibration curve looks bad at low quantiles only because ~40% of store-days are zero (discrete ties): needs a randomised PIT, not a "share ≤ quantile" curve. DC curve (large counts) is close to the diagonal.
+- Saved as `reports/backtest_v1.md`. Next: diagnose bias (dormant items resuming? trend? horizon?) and test a recent-bias correction + yearly lag.
+
+## 2026-10-28 — Simulator (Task 3) and baseline
+
+### D-22 · Simulator design (`project_a/simulate.py`)
+- Daily order of events: receive → demand/sales/lost → policy (sees end-of-day state and its **own** sales, never true demand) → simulator enforces all rules → ship → holding cost.
+- **The simulator enforces rules itself** (POs only Mondays; store cap on on-hand + inbound; transfers ≤ DC stock; outbound cap) with pro-rata cuts, and counts violations — a policy can't cheat.
+- One lognormal lead-time draw **per PO** (a PO is one shipment), arrival `round(L)` days later (≥1); orders may cross.
+- **Demand on censored test days:** recorded sales on clean days; NB draw around the imputed rate on stockout/disrupted days (at least the recorded sales), fresh per Monte Carlo run; 0 on unlisted/dormant days. Sensitivity modes: `recorded`, `synthetic`.
+- Monte Carlo over lead-time draws × censored-day demand draws; report mean, 5–95% range, P(fill ≥ 95%), ending inventory value.
+- Unit tests (`tests/test_simulate.py`): no negative stock, caps never exceeded, sold + lost = demand, costs add up, POs only on Mondays, deterministic per seed, perfect supply → 100% fill, lognormal mean/CV correct. All pass.
+
+### D-23 · "Average daily sales" for the store cap and initial stock = recorded sales over the last 365 training days, on days the item was sellable
+- Brief says "sales"; recorded is the literal reading (recovered would give the policy more room and could look like gaming). 365 days matches the only window the brief names (DC capacity). Config `capacity.avg_sales_basis`, `avg_sales_window_days`.
+- Consequence: a series with no sales in the last year gets a zero cap and zero initial stock.
+
+### A-12 · Baseline smoke test at cutoff d_1885 (3 runs)
+- Total cost ≈ **$136–160k**, fill rate **0.84–0.87** (item-average 0.74–0.80). Lost sales ≈ 70% of cost, transfers ≈ $28k (unavoidable ~ $0.05 × units sold), holding ≈ $12k, POs $1.2k.
+- DC outbound capacity cut the baseline's shipments on ~47 of 56 days; DC stock-outs on ~6–8k item-days (no initial pipeline + FOODS_3 lead time).
+- **Replaying recorded sales as demand** (ignoring censoring in the test window) would report the same baseline at fill 0.90 and cost ~$110k — i.e. ~20% too optimistic. Confirms D-22's censored-day treatment matters.
+- Simulator speed: ~0.2 s per 56-day run → 100 runs in ~20 s.

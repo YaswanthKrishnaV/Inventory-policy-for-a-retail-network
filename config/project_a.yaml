@@ -39,7 +39,8 @@ capacity:
   dc_outbound_window_days: 365  # last N training days for that average
   store_cap_days: 21            # store on-hand+inbound <= N x item avg daily sales (decision §13.4)
   initial_stock_days: 7         # every location incl. DC starts with N days (decision §13.2)
-  avg_sales_window_days: 28     # "average daily sales" = mean of recovered demand over last N days
+  avg_sales_window_days: 365    # "average daily sales" (store cap, initial stock) = mean over last N training days
+  avg_sales_basis: recorded     # recorded | recovered — brief says "sales"; recorded is the literal reading (D-20)
   initial_pipeline: false
 
 fill_rate:
@@ -64,8 +65,33 @@ recovery:
 prices:
   use_future_prices: false      # decision §13.6: carry forward last known price after cutoff
 
+forecast:
+  backend: sklearn              # sklearn (HistGradientBoosting) | lightgbm — same Poisson GBM; see DECISION_LOG D-19
+  train_days: 728               # target days used for training (2 years)
+  subsample: 0.5                # row subsample for speed (0.5 of ~3.2M rows; checked vs 1.0 in DECISION_LOG)
+  params: {learning_rate: 0.06, max_iter: 400, max_leaf_nodes: 127, min_samples_leaf: 200, l2: 1.0}
+  quantiles: [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
+  n_paths: 500                  # sample paths per series (DC paths = sums of store paths)
+  dispersion_bins: [0, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16, 1.0e9]   # daily-mean bands for NB 1/r
+  item_bins: [0, 10, 30, 100, 300, 1000, 1.0e9]                  # 28-day item network volume bands for s_p^2
+
+policy:
+  extend_days: 42               # forecast means extended by weekday pattern beyond 28 days (DC protection interval)
+  n_paths_dc: 200               # coherent DC sample paths used for echelon targets
+  knobs:                        # tuned on backtest cutoffs (project_a/tune.py); defaults here
+    alpha_store: {FOODS_1: 0.97, FOODS_2: 0.97, FOODS_3: 0.97}
+    beta_dc: {FOODS_1: 0.97, FOODS_2: 0.97, FOODS_3: 0.97}
+    store_window: 3             # days of demand the store position must cover after today's order
+    prebuild: true              # pre-ship ahead of days where the DC outbound cap would bind
+    lookahead_days: 6
+    cap_eta: 0.97               # plan to use at most this share of outbound capacity
+
 simulation:
   n_sims: 100
   seed: 2026
+  demand_mode: imputed          # imputed (recorded on clean days, drawn on censored days) | recorded | synthetic
+  censored_inv_r: 0.3           # NB 1/r for demand drawn on censored test days (mean = imputed rate)
+  lead_time_rounding: round     # supplier lead time in whole days: round(L), min 1
+  lead_time_shock: null         # e.g. {dept: FOODS_3, from_day: 14, to_day: 35, multiplier: 2.0, warn_days: 14}
 
 seed: 42
