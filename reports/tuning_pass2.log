@@ -1,0 +1,25 @@
+  forecast origin d_1830: loaded from cache
+  forecast origin d_1802: loaded from cache
+  forecast origin d_1774: loaded from cache
+    cost 102,041 fills [0.957, 0.945, 0.952] obj 128,842  {"alpha_store": {"FOODS_1": 0.99, "FOODS_2": 0.99, "FOODS_3": 0.99}, "beta_dc": {"FOODS_1": 0.995, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 beta_dc[FOODS_1] = 0.99
+    cost 101,775 fills [0.957, 0.945, 0.951] obj 128,696  {"alpha_store": {"FOODS_1": 0.99, "FOODS_2": 0.99, "FOODS_3": 0.99}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 beta_dc[FOODS_2] = 0.99
+    cost 102,750 fills [0.957, 0.945, 0.952] obj 129,427  {"alpha_store": {"FOODS_1": 0.99, "FOODS_2": 0.99, "FOODS_3": 0.99}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.99, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 beta_dc[FOODS_2] = 0.995
+    cost 103,517 fills [0.957, 0.945, 0.952] obj 130,177  {"alpha_store": {"FOODS_1": 0.99, "FOODS_2": 0.99, "FOODS_3": 0.99}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.995, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 beta_dc[FOODS_3] = 0.99
+    cost 100,287 fills [0.957, 0.945, 0.951] obj 128,893  {"alpha_store": {"FOODS_1": 0.99, "FOODS_2": 0.99, "FOODS_3": 0.99}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.99}, "store_window": 4}
+  round 0 alpha_store[FOODS_1] = 0.995
+    cost 101,931 fills [0.957, 0.945, 0.952] obj 127,307  {"alpha_store": {"FOODS_1": 0.995, "FOODS_2": 0.99, "FOODS_3": 0.99}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 alpha_store[FOODS_2] = 0.995
+    cost 102,551 fills [0.958, 0.946, 0.951] obj 128,834  {"alpha_store": {"FOODS_1": 0.995, "FOODS_2": 0.995, "FOODS_3": 0.99}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 alpha_store[FOODS_3] = 0.995
+    cost 103,128 fills [0.958, 0.946, 0.953] obj 125,458  {"alpha_store": {"FOODS_1": 0.995, "FOODS_2": 0.99, "FOODS_3": 0.995}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 store_buffer = 2.0
+    cost 110,242 fills [0.958, 0.947, 0.953] obj 129,493  {"alpha_store": {"FOODS_1": 0.995, "FOODS_2": 0.99, "FOODS_3": 0.995}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 store_buffer = 2.5
+    cost 117,617 fills [0.959, 0.948, 0.954] obj 133,710  {"alpha_store": {"FOODS_1": 0.995, "FOODS_2": 0.99, "FOODS_3": 0.995}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 4}
+  round 0 store_window = 5
+    cost 108,337 fills [0.956, 0.946, 0.954] obj 127,935  {"alpha_store": {"FOODS_1": 0.995, "FOODS_2": 0.99, "FOODS_3": 0.995}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 5}
+BEST {"alpha_store": {"FOODS_1": 0.995, "FOODS_2": 0.99, "FOODS_3": 0.995}, "beta_dc": {"FOODS_1": 0.99, "FOODS_2": 0.97, "FOODS_3": 0.995}, "store_window": 4, "prebuild": true, "lookahead_days": 6, "cap_eta": 0.97, "future_orders": 4, "store_buffer": 1.5} 125457.91913546664 1437s

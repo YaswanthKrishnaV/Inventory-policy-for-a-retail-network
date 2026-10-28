@@ -20,19 +20,19 @@
     },
     "FOODS_2": {
      "stockout_day_share": 0.049492324636883044,
-     "hidden_demand_share": 0.053889000379374274,
+     "hidden_demand_share": 0.05388891878578139,
      "dormant_share": 0.0935258484201831
     },
     "FOODS_3": {
      "stockout_day_share": 0.05678772948950549,
-     "hidden_demand_share": 0.07155330935501403,
+     "hidden_demand_share": 0.07155299354360745,
      "dormant_share": 0.11500857204680504
     }
    },
    "store_id": {
     "CA_1": {
      "stockout_day_share": 0.05870487411940782,
-     "hidden_demand_share": 0.06726117819378497,
+     "hidden_demand_share": 0.06726128097730089,
      "dormant_share": 0.12821994070599899
     },
     "CA_2": {
@@ -42,7 +42,7 @@
     },
     "CA_3": {
      "stockout_day_share": 0.08051019532702262,
-     "hidden_demand_share": 0.08205776229462736,
+     "hidden_demand_share": 0.08205768904199318,
      "dormant_share": 0.04777456840258911
     },
     "CA_4": {
@@ -77,8 +77,8 @@
    "dormant": 0.03206705437916294
   },
   "recorded_units": 665355,
-  "recovered_units": 702889.375,
-  "hidden_share": 0.053400117194828844
+  "recovered_units": 702889.4375,
+  "hidden_share": 0.0534002013652396
  },
  "capacity": {
   "avg_daily_recorded": 10753.671232876712,

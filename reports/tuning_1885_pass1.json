@@ -1,0 +1,589 @@
+{
+ "cutoff": 1885,
+ "tuning_cutoffs": [
+  1829,
+  1801,
+  1773
+ ],
+ "best_knobs": {
+  "alpha_store": {
+   "FOODS_1": 0.99,
+   "FOODS_2": 0.99,
+   "FOODS_3": 0.99
+  },
+  "beta_dc": {
+   "FOODS_1": 0.995,
+   "FOODS_2": 0.97,
+   "FOODS_3": 0.995
+  },
+  "store_window": 4,
+  "prebuild": true,
+  "lookahead_days": 6,
+  "cap_eta": 0.97,
+  "future_orders": 4,
+  "store_buffer": 1.5
+ },
+ "best_objective": 128842.48686826086,
+ "history": [
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 90152.66624783458,
+   "fills": [
+    0.9503709171838383,
+    0.9320524527378532,
+    0.9385700827052036
+   ],
+   "objective": 178165.76099404425,
+   "seconds": 321.3920097351074
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.95,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 90034.108890671,
+   "fills": [
+    0.9503176940968322,
+    0.9319389213674727,
+    0.9383093644572232
+   ],
+   "objective": 178902.14904761448,
+   "seconds": 70.11048626899719
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 90445.9370051393,
+   "fills": [
+    0.9504125289856432,
+    0.9322193332027134,
+    0.9389096304058949
+   ],
+   "objective": 177362.9518166359,
+   "seconds": 71.17727851867676
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 90692.37573187119,
+   "fills": [
+    0.9504219636350392,
+    0.9322972124766994,
+    0.9390051781668968
+   ],
+   "objective": 177243.6671746003,
+   "seconds": 72.48124146461487
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.95,
+     "FOODS_3": 0.97
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 90345.4479721252,
+   "fills": [
+    0.9503634144327777,
+    0.9321659745126879,
+    0.9389329040136706
+   ],
+   "objective": 177420.86205385256,
+   "seconds": 68.89294123649597
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.99,
+     "FOODS_3": 0.97
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 91559.07948013755,
+   "fills": [
+    0.9505088203952504,
+    0.9324944510133696,
+    0.9390693644837752
+   ],
+   "objective": 177413.80769534688,
+   "seconds": 70.67153882980347
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.995,
+     "FOODS_3": 0.97
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 92296.2437492301,
+   "fills": [
+    0.9505383363343487,
+    0.9325326357079341,
+    0.9390742214359781
+   ],
+   "objective": 178005.8567927081,
+   "seconds": 75.83619451522827
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.95
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 90044.5488222404,
+   "fills": [
+    0.9497856172849595,
+    0.9302380407670534,
+    0.9378359279883468
+   ],
+   "objective": 184325.37674152077,
+   "seconds": 73.57525992393494
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.99
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 92397.3386426798,
+   "fills": [
+    0.9513002623956179,
+    0.9350859317370706,
+    0.9403654865930298
+   ],
+   "objective": 168893.97719124303,
+   "seconds": 73.09813785552979
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.97,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 93612.15658449405,
+   "fills": [
+    0.9516868847715106,
+    0.9360483991451772,
+    0.9410191000128942
+   ],
+   "objective": 166103.38872532957,
+   "seconds": 72.70659470558167
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.95,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 93891.12445413654,
+   "fills": [
+    0.9509797165950089,
+    0.9353115728352508,
+    0.9398905194162733
+   ],
+   "objective": 171527.50676107025,
+   "seconds": 71.61370182037354
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 93356.06635070416,
+   "fills": [
+    0.952769277814654,
+    0.9374408826623514,
+    0.9426775674327431
+   ],
+   "objective": 157580.61053120688,
+   "seconds": 69.8213472366333
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.95,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 93332.71808036203,
+   "fills": [
+    0.9523519443093508,
+    0.9369331507934482,
+    0.9422205213274234
+   ],
+   "objective": 160321.4852199171,
+   "seconds": 70.74234986305237
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.99,
+     "FOODS_3": 0.97
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 93683.29797789373,
+   "fills": [
+    0.9534866080022267,
+    0.9382550789308094,
+    0.9432897531231791
+   ],
+   "objective": 153620.41786546307,
+   "seconds": 72.9448606967926
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.99,
+     "FOODS_3": 0.95
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 93856.73239849781,
+   "fills": [
+    0.9521620712639497,
+    0.9363067222284539,
+    0.9410058929494967
+   ],
+   "objective": 164907.35951469705,
+   "seconds": 74.61493730545044
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.99,
+     "FOODS_3": 0.99
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.0
+   },
+   "cost": 94131.0674346902,
+   "fills": [
+    0.9551096395448692,
+    0.9406621614158124,
+    0.9463427950404174
+   ],
+   "objective": 140121.15452223047,
+   "seconds": 76.18706035614014
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.99,
+     "FOODS_3": 0.99
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 0.5
+   },
+   "cost": 90314.99155741227,
+   "fills": [
+    0.9538701637716348,
+    0.9367764901802325,
+    0.9440275445201675
+   ],
+   "objective": 150966.59461334258,
+   "seconds": 74.29558897018433
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.99,
+     "FOODS_3": 0.99
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 3,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.5
+   },
+   "cost": 98752.97615641792,
+   "fills": [
+    0.9559118987609003,
+    0.9428672286524188,
+    0.9475767911266528
+   ],
+   "objective": 137864.93659827454,
+   "seconds": 72.63301920890808
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.99,
+     "FOODS_3": 0.99
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 2,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.5
+   },
+   "cost": 97922.28867991116,
+   "fills": [
+    0.9504889943318564,
+    0.9337023246769564,
+    0.9363922996281735
+   ],
+   "objective": 186755.0514059384,
+   "seconds": 253.20718359947205
+  },
+  {
+   "knobs": {
+    "alpha_store": {
+     "FOODS_1": 0.99,
+     "FOODS_2": 0.99,
+     "FOODS_3": 0.99
+    },
+    "beta_dc": {
+     "FOODS_1": 0.995,
+     "FOODS_2": 0.97,
+     "FOODS_3": 0.995
+    },
+    "store_window": 4,
+    "prebuild": true,
+    "lookahead_days": 6,
+    "cap_eta": 0.97,
+    "future_orders": 4,
+    "store_buffer": 1.5
+   },
+   "cost": 102041.29377327346,
+   "fills": [
+    0.9571748346775943,
+    0.945091323498374,
+    0.9515080799541322
+   ],
+   "objective": 128842.48686826086,
+   "seconds": 280.5647523403168
+  }
+ ]
+}

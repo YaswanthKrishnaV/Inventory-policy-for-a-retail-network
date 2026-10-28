@@ -1,0 +1,5 @@
+  forecast origin d_1802: fit 1506s, calibrate 164s, calib bias (actual/forecast) 1.033, dormant resume factor 0.000
+  forecast origin d_1830: fit 162s, calibrate 169s, calib bias (actual/forecast) 1.115, dormant resume factor 0.000
+  forecast origin d_1858: fit 172s, calibrate 173s, calib bias (actual/forecast) 1.066, dormant resume factor 0.000
+  forecast origin d_1886: fit 173s, calibrate 173s, calib bias (actual/forecast) 1.020, dormant resume factor 0.000
+done

@@ -329,3 +329,63 @@ DC level: recovered bias 1.098 / 1.095 / 1.042, 90% coverage 0.93 / 0.94 / 0.94;
 
 ### D-30 · Tuning pass 2
 - One coordinate-descent pass over: DC quantile per dept {0.95, 0.97, 0.99, 0.995}, store quantile per dept {0.95, 0.97, 0.99}, store_buffer {0.5, 1, 1.5}, store window {2, 3, 4}; 6 CRN runs × 3 tuning cutoffs per setting; objective = mean cost + $20k per fill point below 95.5% on any tuning cutoff.
+
+### A-22 · Tuning results (pass 1 full grid, pass 2 at the grid edges; `reports/tuning_pass1.log`, `tuning_pass2.log`, `tuning_1885.json`)
+Mean over tuning cutoffs d_1829 / d_1801 / d_1773, 6 CRN runs each:
+
+| setting | cost | fill (three windows) |
+|---|---|---|
+| defaults (α 0.97, β 0.97, window 3, buffer 1.0) | $90.2k | 0.950 / 0.932 / 0.939 |
+| + β FOODS_1 0.995, FOODS_3 0.995 | $93.6k | 0.952 / 0.936 / 0.941 |
+| + α 0.99 all depts | $94.1k | 0.955 / 0.941 / 0.946 |
+| + store buffer 1.5 | $98.8k | 0.956 / 0.943 / 0.948 |
+| + store window 4 | $102.0k | 0.957 / 0.945 / 0.952 |
+| pass 2: α FOODS_1/3 0.995, β FOODS_1 0.99 (**chosen**) | **$103.1k** | **0.958 / 0.946 / 0.953** |
+| pass 2: buffer 2.0 / 2.5 | $110.2k / $117.6k | 0.958 / 0.947 / 0.953 → 0.959 / 0.948 / 0.954 |
+| pass 2: window 5 | $108.3k | 0.956 / 0.946 / 0.954 |
+
+- Fill plateaus at ≈ 95.8 / 94.7 / 95.3%: beyond the chosen point each extra 0.1 fill point costs $3–7k. The remaining shortfall is the start-up (no pipeline, 7 days of stock) and the cap rules (A-17), which no knob can fix.
+- The d_1801 window (Jan–Feb) stays below 95%: it is also where the forecast under-forecasts most (bias 1.09).
+
+### D-31 · Final knobs
+α (store) = 0.995 / 0.99 / 0.995, β (DC) = 0.99 / 0.97 / 0.995 for FOODS_1/2/3, store window 4 days, store buffer 1.5, pre-build on. Saved as config defaults; the full run re-tunes from them on windows before whatever cutoff it is given (one pass over a grid around them), so other cutoffs are never tuned on their own test period. `--fast` / `--skip-tune` use these defaults as-is (tuned for d_1885).
+
+## 2026-10-28 — Final run at d_1885 (`python -m project_a.run_project_a --cutoff 1885 --skip-tune`, 63 min on 2 cores)
+
+### A-23 · Results (100 Monte Carlo runs per policy; `reports/results_1885.md`)
+
+| policy | cost | 5–95% | fill | 5–95% | P(≥95%) | lost | holding | transfer | ending inv. |
+|---|---|---|---|---|---|---|---|---|---|
+| baseline | $141.8k | $119–178k | 85.7% | 79.4–89.7% | 0.00 | $101.9k | $10.7k | $28.1k | $0.44M |
+| **recommended** | **$114.1k** | $95–150k | **95.2%** | 89.5–98.0% | **0.63** | $29.3k | $47.6k | $35.9k | $1.50M |
+| no weekend pre-build | $113.8k | | 95.3% | | 0.64 | | | | |
+| no forecast adjustments | $118.8k | | 94.5% | | 0.58 | $35.3k | | | |
+| raw-sales forecast | $118.7k | | 94.1% | | 0.50 | $35.8k | | | |
+| recorded test sales as demand (sensitivity) | $105.8k | | 96.4% | | 0.80 | | | | |
+| baseline, recorded test sales | $113.2k | | 89.2% | | 0.00 | | | | |
+
+- **−$27.8k (−20%) and +9.6 fill points vs the baseline**; zero rule violations (baseline: ~16k cut requests per run).
+- **Value of demand recovery in $:** the same policy driven by a raw-sales forecast costs +$4.7k and −1.1 fill points; P(≥95%) 0.63 → 0.50. Forecast corrections (D-24) are worth +$4.7k / +0.7 points.
+- **Censoring in evaluation:** replaying recorded test sales overstates fill by 1.2 (recommended) to 3.5 points (baseline) and understates cost by $8–29k.
+- **Pre-build is redundant** at the tuned settings (4-day store window + 99%+ store levels already carry weekend cover). Kept on as a safeguard; reported honestly.
+- Fill by dept: 97.3% / 98.0% / 94.2% — FOODS_3 (long lead time) is the weak spot.
+- Forecast backtest with the fully naive raw benchmark (D-28): raw store bias 1.128 / 1.084 / 1.057 vs recovered 1.090 / 1.044 / 0.999.
+
+### A-24 · Inventory build-up and the lean variant
+- DC cover jumps to ~48 days in week 2 and drains to ~29 by week 8; stores 5 → 9 days. Ending inventory $1.50M (≈ 44 days of sales at retail value) vs baseline $0.44M. Cause: with no pipeline at the start, early orders insure against a late first PO (500:1 cost ratio + 95% floor).
+- **Lean variant** (α = β = 0.97, window 3, buffer 1.0), 40 runs on the same seeds: $95.6k, fill 94.8%, P(≥95%) 0.625, ending inv. $1.00M. **Recommended on the same 40 seeds: $115.2k, fill 95.0%, P 0.625.** On this window the tuned insurance buys only +0.2 points for ~$19.6k; on the three past windows it bought +0.8–1.4 points (A-22).
+- Decision: keep the tuned knobs (chosen without seeing the test window; meets 95% on 2 of 3 past windows vs 1 of 3 for lean) and give the COO the lean option and its trade-off explicitly in the memo. Re-tuning on the test window would be peeking.
+
+### A-25 · Stress test (FOODS_3 lead ×2 for POs placed days 14–34)
+
+| policy | base | unwarned | warned (14 days) |
+|---|---|---|---|
+| recommended (100 runs) | $114.1k / 95.2% | $113.1k / 95.1% | $116.3k / 95.2% |
+| lean (40 runs) | $95.6k / 94.8% | $97.4k / 94.2% | $98.3k / 94.7% |
+| baseline (20 runs) | $138.7k / 86.2% | $171.6k / 79.8% | same as unwarned (can't use a warning) |
+
+- The recommended policy's 30–40 days of DC cover absorb a 10-day slip; extra warned pre-buying adds $2.2k for nothing. The warning is worth most to a lean policy (recovers 0.5 of 0.6 lost points for +$0.9k). The baseline has no buffer: −6.4 points, +$32.9k.
+
+### D-32 · Deliverable format
+- `forecasts.parquet` is written via pandas/pyarrow. The analysis environment had no parquet engine, so this run wrote `forecasts.csv.gz` (same columns); the Parquet file is produced by running on the Mac (pyarrow in `.venv`).
+- Memo: `memo/memo_A.md` → `memo_A.pdf` (pandoc + wkhtmltopdf, `python memo/build_memo.py`), 2 pages.

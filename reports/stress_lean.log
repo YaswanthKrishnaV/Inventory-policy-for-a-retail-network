@@ -1,0 +1,8 @@
+  stress base     : cost 95,588  fill 0.9482  FOODS_3 fill 0.9378
+  stress unwarned : cost 97,395  fill 0.9421  FOODS_3 fill 0.9292
+  stress warned   : cost 98,272  fill 0.9473  FOODS_3 fill 0.9366
+           cost_mean    cost_p05     cost_p95  fill_mean  fill_p05  fill_FOODS_3   lost_cost  holding_dc  ending_inventory  delta_cost_vs_base  delta_fill_vs_base
+scenario                                                                                                                                                          
+base      95587.9625  80980.4289  116499.0156     0.9482    0.9081        0.9378  32267.0378  21266.3395      9.990497e+05              0.0000              0.0000
+unwarned  97394.9103  80863.8767  116852.0918     0.9421    0.9071        0.9292  36034.6640  19620.5208      1.005951e+06           1806.9477             -0.0061
+warned    98271.7523  83771.9926  118441.3960     0.9473    0.9078        0.9366  32890.7964  23359.5881      1.013722e+06           2683.7898             -0.0009

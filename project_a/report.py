@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 
 import matplotlib
+import matplotlib.ticker
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -82,23 +83,7 @@ def write(cutoff, cfg, net, runs, st_out, st_daily, st_bl, knobs, blocks, frame,
     (rep / f"results_{cutoff}.md").write_text("\n".join(md))
 
     # figures --------------------------------------------------------------
-    main = [n for n in tab.index if not n.startswith("sensitivity")]
-    fig, ax = plt.subplots(figsize=(9, 0.55 * len(main) + 1.2))
-    comp = [("lost", "lost sales"), ("holding", "holding"), ("transfer", "DC→store transfers"), ("po", "POs")]
-    left = np.zeros(len(main))
-    for k, (col, lbl) in enumerate(comp):
-        v = tab.loc[main, col].to_numpy()
-        ax.barh(range(len(main)), v, left=left, color=SERIES[k], height=0.6, label=lbl, edgecolor="white", linewidth=2)
-        left += v
-    for i, n in enumerate(main):
-        ax.text(left[i] + 1500, i, f"${left[i] / 1000:,.0f}k · fill {100 * tab.loc[n, 'fill']:.1f}%", va="center", fontsize=8, color=INK)
-    ax.set_yticks(range(len(main)), main, fontsize=8)
-    ax.invert_yaxis()
-    ax.set_xlim(0, left.max() * 1.35)
-    ax.set_title(f"Expected 56-day cost by component (cutoff d_{cutoff})", loc="left", fontsize=10, color=INK)
-    ax.legend(frameon=False, fontsize=8, ncol=4, loc="lower right")
-    _style(ax); ax.grid(axis="x", color=GRID, lw=0.6); ax.grid(axis="y", visible=False)
-    fig.tight_layout(); fig.savefig(rep / "fig_policy_costs.png", dpi=140); plt.close(fig)
+    fig_costs(tab, cutoff, rep)
 
     fig, ax = plt.subplots(figsize=(9, 3.4))
     for k, n in enumerate(["baseline", "recommended"]):
@@ -123,3 +108,25 @@ def write(cutoff, cfg, net, runs, st_out, st_daily, st_bl, knobs, blocks, frame,
     ax.legend(frameon=False, fontsize=8); _style(ax)
     fig.tight_layout(); fig.savefig(rep / "fig_stress.png", dpi=140); plt.close(fig)
     print("\n".join(md))
+
+
+def fig_costs(tab: pd.DataFrame, cutoff: int, rep):
+    """Stacked cost components per policy (sensitivity rows excluded)."""
+    main = [n for n in tab.index if not n.startswith("sensitivity")]
+    fig, ax = plt.subplots(figsize=(9, 0.55 * len(main) + 1.4))
+    comp = [("lost", "lost sales"), ("holding", "holding"), ("transfer", "DC→store transfers"), ("po", "POs")]
+    left = np.zeros(len(main))
+    for k, (col, lbl) in enumerate(comp):
+        v = tab.loc[main, col].to_numpy()
+        ax.barh(range(len(main)), v, left=left, color=SERIES[k], height=0.6, label=lbl, edgecolor="white", linewidth=2)
+        left += v
+    for i, n in enumerate(main):
+        ax.text(left[i] + 1500, i, f"${left[i] / 1000:,.0f}k · fill {100 * tab.loc[n, 'fill']:.1f}%", va="center", fontsize=8, color=INK)
+    ax.set_yticks(range(len(main)), main, fontsize=8)
+    ax.invert_yaxis()
+    ax.set_xlim(0, left.max() * 1.35)
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda x, _: f"${x / 1000:,.0f}k"))
+    ax.set_title(f"Expected 56-day cost by component (cutoff d_{cutoff})", loc="left", fontsize=10, color=INK, pad=22)
+    ax.legend(frameon=False, fontsize=8, ncol=4, loc="lower left", bbox_to_anchor=(0, 1.0))
+    _style(ax); ax.grid(axis="x", color=GRID, lw=0.6); ax.grid(axis="y", visible=False)
+    fig.tight_layout(); fig.savefig(rep / "fig_policy_costs.png", dpi=140); plt.close(fig)

@@ -1,0 +1,65 @@
+{
+ "knobs": {
+  "alpha_store": {
+   "FOODS_1": 0.97,
+   "FOODS_2": 0.97,
+   "FOODS_3": 0.97
+  },
+  "beta_dc": {
+   "FOODS_1": 0.97,
+   "FOODS_2": 0.97,
+   "FOODS_3": 0.97
+  },
+  "store_window": 3,
+  "store_buffer": 1.0
+ },
+ "n_sims": 40,
+ "table": [
+  {
+   "scenario": "base",
+   "cost_mean": 95587.9625438408,
+   "cost_p05": 80980.42887500476,
+   "cost_p95": 116499.01564298669,
+   "fill_mean": 0.948201079123604,
+   "fill_p05": 0.9080669229609537,
+   "fill_FOODS_3": 0.9378272516703785,
+   "lost_cost": 32267.037802615127,
+   "holding_dc": 21266.339518448338,
+   "ending_inventory": 999049.6596950047,
+   "delta_cost_vs_base": 0.0,
+   "delta_fill_vs_base": 0.0
+  },
+  {
+   "scenario": "unwarned",
+   "cost_mean": 97394.91028158073,
+   "cost_p05": 80863.87669988799,
+   "cost_p95": 116852.09179107215,
+   "fill_mean": 0.9420989790634007,
+   "fill_p05": 0.9071329720741269,
+   "fill_FOODS_3": 0.9291838405090583,
+   "lost_cost": 36034.66399564471,
+   "holding_dc": 19620.52078938252,
+   "ending_inventory": 1005950.6134390176,
+   "delta_cost_vs_base": 1806.9477377399307,
+   "delta_fill_vs_base": -0.006102100060203286
+  },
+  {
+   "scenario": "warned",
+   "cost_mean": 98271.75231964097,
+   "cost_p05": 83771.99258369791,
+   "cost_p95": 118441.39604368912,
+   "fill_mean": 0.9473227984897722,
+   "fill_p05": 0.9078242785312962,
+   "fill_FOODS_3": 0.9365754301144446,
+   "lost_cost": 32890.79642751802,
+   "holding_dc": 23359.58812773269,
+   "ending_inventory": 1013721.556356543,
+   "delta_cost_vs_base": 2683.789775800178,
+   "delta_fill_vs_base": -0.0008782806338317739
+  },
+  {
+   "scenario": "base_extra",
+   "p_fill_ok": 0.625
+  }
+ ]
+}

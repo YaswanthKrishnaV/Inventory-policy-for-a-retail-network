@@ -23,11 +23,12 @@ Put the Kaggle M5 files `sales_train_evaluation.csv`, `sell_prices.csv`, `calend
 
 ## Run
 ```bash
-make all                                    # tests + full pipeline at the default cutoff d_1885
-make project_a CUTOFF=1857                  # any cutoff: retrains on d <= cutoff only
+python -m project_a.run_project_a --cutoff 1885          # the single command: full pipeline
+python -m project_a.run_project_a --cutoff 1857          # any cutoff: retrains on d <= cutoff only
 python -m project_a.run_project_a --cutoff 1885 --fast   # quick look: 20 sims, no backtest/tuning
+python -m pytest -q tests                                # simulator invariants
 ```
-Expected runtime of `make all` on a recent laptop: well under 2 hours (forecast fits dominate;
+Expected runtime of the full run on a recent laptop: well under 2 hours (forecast fits dominate;
 fitted models are cached in `cache/` so re-runs are fast).
 
 Individual steps:
@@ -35,7 +36,6 @@ Individual steps:
 python -m project_a.audit_data --cutoff 1885     # data audit        -> reports/data_audit.md
 python -m project_a.backtest                     # forecast backtests -> reports/backtest.md
 python -m project_a.simulate --policy baseline   # replay one policy
-pytest -q tests                                  # simulator invariants
 ```
 
 ## Layout
