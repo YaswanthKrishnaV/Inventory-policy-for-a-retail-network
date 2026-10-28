@@ -55,6 +55,8 @@ class Design:
     roi_window: np.ndarray   # (T,) bool weeks used to define c_m (training weeks)
     baseline_kind: str
     t_train_end: int
+    Zc: np.ndarray = None    # (G, T, C) per-geo control columns when controls vary by geo
+    c_names: list = None
 
 
 def trend_basis(T, t_end, every):
@@ -107,7 +109,9 @@ def build_design(d, cfg, national: bool = False) -> Design:
     mask = np.broadcast_to(train, (G, T)).copy()
     y_mean, y_sd = ypc[mask].mean(), ypc[mask].std()
     y = (ypc - y_mean) / y_sd
-    media = [spend[m] / pop[:, None] for m in range(spend.shape[0])] + [org / pop[:, None]]
+    media = [spend[m] / pop[:, None] for m in range(spend.shape[0])]
+    if mc.get("include_organic", True):
+        media.append(org / pop[:, None])
     x_scale = np.array([np.median(v[:, :t_end][v[:, :t_end] > 0]) for v in media])
     x = np.stack([v / s for v, s in zip(media, x_scale)])
     # shared design
@@ -119,13 +123,18 @@ def build_design(d, cfg, national: bool = False) -> Design:
         Ht, hn = trend_basis(T, t_end, mc["knot_every_weeks"])
         Ft, fn = fourier_basis(T, mc["period_weeks"], mc["fourier_order"])
         Bt, bnames = np.column_stack([Ht, Ft]), hn + fn
+    keep_c = [i for i, n in enumerate(d.control_names) if n in mc.get("controls", d.control_names)]
+    ctrl = ctrl[keep_c]
+    cnames = [d.control_names[i] for i in keep_c]
     csd = [c[:, :t_end].std() for c in ctrl]
     psd = promo[:, :t_end].std()
-    W = np.concatenate([np.broadcast_to(Bt, (G, T, Bt.shape[1])),
-                        np.stack([c / s for c, s in zip(ctrl, csd)], -1),
-                        (promo / psd)[:, :, None]], axis=2)
-    names = list(d.channels) + ["Organic"]
-    return Design(y=y, mask=mask, x=x, W=np.ascontiguousarray(W), w_names=bnames + list(d.control_names) + ["Promo"],
+    Cz = np.stack([c / s for c, s in zip(ctrl, csd)], -1)          # (G, T, C) standardised controls
+    geo_ctrl = mc.get("geo_controls", False)
+    W = np.concatenate([np.broadcast_to(Bt, (G, T, Bt.shape[1]))] + ([] if geo_ctrl else [Cz]) +
+                       [(promo / psd)[:, :, None]], axis=2)
+    names = list(d.channels) + (["Organic"] if mc.get("include_organic", True) else [])
+    return Design(y=y, mask=mask, x=x, W=np.ascontiguousarray(W), w_names=bnames + ([] if geo_ctrl else cnames) + ["Promo"],
+                  Zc=Cz if geo_ctrl else None, c_names=cnames,
                   n_paid=len(d.channels), names=names, y_mean=y_mean, y_sd=y_sd,
                   rev_scale=y_sd * pop[:, None] * rpk, spend=spend, x_scale=x_scale, pop=pop,
                   max_lag=mc["max_lag"], roi_window=train.copy(), baseline_kind=mc["baseline"], t_train_end=t_end)
@@ -185,7 +194,11 @@ class Model:
         self.M = design.n_paid
         self.G, self.T = design.y.shape
         self.q = design.W.shape[2]
-        self.p = 1 + self.J
+        self.geo_trend = cfg["model"].get("geo_trend", False)
+        self.nc = 0 if design.Zc is None else design.Zc.shape[2]
+        self.p = 1 + self.J + (1 if self.geo_trend else 0) + self.nc
+        t = np.minimum(np.arange(self.T), design.t_train_end - 1) / max(design.t_train_end - 1, 1)
+        self._gt = (t - t[:design.t_train_end].mean())[None, :, None]
         self.cal = calibration        # dict(channel=j, geos=bool (G,), t0, t1, tail, obs, se) or None
         self.fixed_eta = fixed_eta    # national model: no geo hierarchy
         lam_s = np.full(self.q, 1.0 / design.__dict__.get("base_sd", 1.0) ** 2)
@@ -218,10 +231,21 @@ class Model:
             eta = self.fixed_eta if self.fixed_eta is not None else st.eta[j]
             mu[:, 1 + j] = b
             lam[:, 1 + j] = 1.0 / max((eta * b) ** 2, 1e-12)
+        k = 1 + self.J
+        if self.geo_trend:
+            lam[:, k] = 1.0 / self.cfg["priors"].get("geo_trend_sd", 0.5) ** 2
+            k += 1
+        if self.nc:
+            lam[:, k:k + self.nc] = 1.0 / self.pr.ctrl_sd ** 2
         return mu, lam
 
     def Z_of(self, H):
-        return np.concatenate([np.ones((self.G, self.T, 1)), np.transpose(H, (1, 2, 0))], axis=2)
+        cols = [np.ones((self.G, self.T, 1)), np.transpose(H, (1, 2, 0))]
+        if self.geo_trend:
+            cols.append(np.broadcast_to(self._gt, (self.G, self.T, 1)))
+        if self.nc:
+            cols.append(self.d.Zc)
+        return np.concatenate(cols, axis=2)
 
     def extra_of(self, H_cf_diff, st):
         """Lift-test observation: obs ~ N(sum_g b[j,g] * D_g, se^2)."""

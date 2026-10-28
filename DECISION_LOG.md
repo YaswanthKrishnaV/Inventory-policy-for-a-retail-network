@@ -68,3 +68,23 @@ Simulated KPI from the model with known parameters using the real spend/organic/
 
 - **Coverage 9/10 = 90%**, as a calibrated sampler should give. Adstock decay recovered well; half-saturation weakly identified (trades off against ROI) → slow mixing (R-hat up to 1.06, ESS ~33 with short chains). Real fits use 4 chains × 1,500 warm-up × 1,000 draws.
 - Channel2 (64% zero weeks) and Channel0 have the widest intervals — expected to be the least certain on real data too.
+
+## 2026-10-28 — First real fits
+
+### B-A06 · Prior-predictive check
+Before seeing the KPI, the priors imply paid + organic media drive a median **22%** of conversions (90% range 12–44%; P(> 50%) = 0.03) — plausible, and close to Meridian's own fallback assumption (40% ± 20%). Simulated national KPI per capita spans 1.7–52.6 (observed 15.7–22.6): wide but covering.
+
+### B-A07 · First geo fit had implausible negative geo effects → controls must vary by geo
+- First full fit (shared control coefficients; 4 × 1,000 draws; R-hat ≤ 1.03): ROI 1.01 / 1.21 / 1.84 / 1.06 / 0.78, but the geo spread of media effects came out at **1.3–1.6× the channel mean** for Ch0/2/3/4, and **11–18 of 40 geos had negative mean effects** (e.g. Channel4 lowering sales in 18 geos). Not credible.
+- Test 1 — tighter pooling (η ~ HalfNormal(0.15)): the data pushed η for Ch2/3/4 back to ~0.8; 9–11 negative geos remained; hold-out unchanged → the heterogeneity is structural, not a prior problem.
+- Test 2 — **control effects vary by geo** (Meridian's γ_gc; competitor sales is correlated 0.39–0.48 with Ch2/3/4 spend): η fell to 0.33–0.49, **0 negative geos**, residual sd 0.857 → 0.787, geo hold-out WAPE 0.229 → 0.220, in-sample geo WAPE 0.221 → 0.205. National hold-out WAPE slightly worse (0.060 → 0.067).
+- Interpretation: competitor sales and sentiment act differently by geo; forcing one coefficient pushed that geo-specific confounding into the media coefficients.
+
+### B-D05 · Controls get geo-specific coefficients (main specification) **[supersedes shared controls]**
+Per-geo control coefficients ~ N(0, 1) (Meridian uses geo-varying control effects too). ROIs moved materially (e.g. Ch2 1.84 → 1.28, Ch4 0.78 → 1.89 in a short test fit), so this is one of the most consequential choices; it is logged with both results.
+
+### B-D06 · Budget optimiser: greedy water-filling instead of SLSQP
+SLSQP failed on the piecewise-linear interpolated response curves. The curves are concave (slope-1 Hill after adstock), so allocating small budget slices (0.25% of a channel's last-13-week spend) to the channel with the highest marginal revenue per unit of spend is exact; at the optimum, marginal ROIs are equal across channels not at a ±30% bound.
+
+### B-D07 · Sampler settings for the deliverable run
+4 chains × 1,000 warm-up × 600 draws (the first fit with 1,500 × 1,000 reached R-hat ≤ 1.03, ESS ≥ 109; shorter chains keep the full 7-model pipeline within the 2-hour budget on a laptop). Convergence is reported for every variant.

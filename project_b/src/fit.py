@@ -46,8 +46,9 @@ def diagnostics(post, model):
     for m in range(model.M):
         r, e = rhat_ess(post["roi"][:, :, m])
         out[f"roi[{names[m]}]"] = dict(rhat=r, ess=e)
-    r, e = rhat_ess(post["beta_org"])
-    out["beta_org"] = dict(rhat=r, ess=e)
+    if model.J > model.M:
+        r, e = rhat_ess(post["beta_org"])
+        out["beta_org"] = dict(rhat=r, ess=e)
     r, e = rhat_ess(np.log(post["sigma"]).mean(2))
     out["mean log sigma"] = dict(rhat=r, ess=e)
     return out

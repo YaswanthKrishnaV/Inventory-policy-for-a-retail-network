@@ -31,6 +31,8 @@ def prior_predictive(model, n=300, seed=0):
         s = rng.normal(0, 1, model.q)
         sig = np.abs(rng.normal(0, pr.sigma_scale, G))
         y = tau[:, None] + np.einsum("gtq,q->gt", d.W, s) + media + rng.normal(0, 1, media.shape) * sig[:, None]
+        if d.Zc is not None:
+            y = y + np.einsum("gtc,gc->gt", d.Zc, rng.normal(0, pr.ctrl_sd, (G, d.Zc.shape[2])))
         kpi = (y * d.y_sd + d.y_mean) * d.pop[:, None]
         mk = media * d.y_sd * d.pop[:, None]
         shares.append(mk[:, tr].sum() / max(kpi[:, tr].sum(), 1e-9))
