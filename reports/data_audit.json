@@ -1,0 +1,235 @@
+{
+ "cutoff": 1885,
+ "n_series": 5748,
+ "summary": {
+  "status_share": {
+   "ok": 0.6128181131852574,
+   "prelaunch": 0.0015473955651048733,
+   "unlisted": 0.23742738796010698,
+   "closed": 0.0020962659829552063,
+   "disrupted": 0.0003674210750735119,
+   "stockout": 0.04540765188306762,
+   "dormant": 0.10033576434843443
+  },
+  "last_365": {
+   "dept_id": {
+    "FOODS_1": {
+     "stockout_day_share": 0.065734398782344,
+     "hidden_demand_share": 0.07359417273011559,
+     "dormant_share": 0.10111301369863014
+    },
+    "FOODS_2": {
+     "stockout_day_share": 0.049492324636883044,
+     "hidden_demand_share": 0.053889000379374274,
+     "dormant_share": 0.0935258484201831
+    },
+    "FOODS_3": {
+     "stockout_day_share": 0.05678772948950549,
+     "hidden_demand_share": 0.07155330935501403,
+     "dormant_share": 0.11500857204680504
+    }
+   },
+   "store_id": {
+    "CA_1": {
+     "stockout_day_share": 0.05870487411940782,
+     "hidden_demand_share": 0.06726117819378497,
+     "dormant_share": 0.12821994070599899
+    },
+    "CA_2": {
+     "stockout_day_share": 0.04300435648849868,
+     "hidden_demand_share": 0.0566983117078822,
+     "dormant_share": 0.11839353295011487
+    },
+    "CA_3": {
+     "stockout_day_share": 0.08051019532702262,
+     "hidden_demand_share": 0.08205776229462736,
+     "dormant_share": 0.04777456840258911
+    },
+    "CA_4": {
+     "stockout_day_share": 0.042228386764663825,
+     "hidden_demand_share": 0.055434887349383954,
+     "dormant_share": 0.13349157777332915
+    }
+   }
+  }
+ },
+ "on_cutoff_day": {
+  "ok": 5272,
+  "prelaunch": 0,
+  "unlisted": 0,
+  "closed": 0,
+  "disrupted": 0,
+  "stockout": 317,
+  "dormant": 159
+ },
+ "test_window": {
+  "window": [
+   1886,
+   1941
+  ],
+  "status_share": {
+   "ok": 0.9239518093249826,
+   "prelaunch": 0.0,
+   "unlisted": 0.0,
+   "closed": 0.0,
+   "disrupted": 0.0,
+   "stockout": 0.043981136295854456,
+   "dormant": 0.03206705437916294
+  },
+  "recorded_units": 665355,
+  "recovered_units": 702889.375,
+  "hidden_share": 0.053400117194828844
+ },
+ "capacity": {
+  "avg_daily_recorded": 10753.671232876712,
+  "avg_daily_recovered": 11547.951171875,
+  "cap_units_per_day": 13442.08904109589,
+  "days_recorded_above_cap": 49,
+  "days_recovered_above_cap": 73,
+  "recovered_by_dow": {
+   "0": 11218.033203125,
+   "1": 10234.7275390625,
+   "2": 10014.8828125,
+   "3": 10069.208984375,
+   "4": 11040.2978515625,
+   "5": 13866.6025390625,
+   "6": 14338.240234375
+  }
+ },
+ "injection": [
+  {
+   "band": "0-0.5",
+   "run_len": 1,
+   "days": 400,
+   "recall": 0.0275,
+   "imputed_over_true": 0.3454886078033282
+  },
+  {
+   "band": "0-0.5",
+   "run_len": 3,
+   "days": 1200,
+   "recall": 0.0325,
+   "imputed_over_true": 0.7886138404712159
+  },
+  {
+   "band": "0-0.5",
+   "run_len": 7,
+   "days": 2800,
+   "recall": 0.11,
+   "imputed_over_true": 1.140592012677748
+  },
+  {
+   "band": "0-0.5",
+   "run_len": 14,
+   "days": 5600,
+   "recall": 0.3475,
+   "imputed_over_true": 1.0489236341956116
+  },
+  {
+   "band": "0.5-2",
+   "run_len": 1,
+   "days": 400,
+   "recall": 0.045,
+   "imputed_over_true": 0.7117036308549944
+  },
+  {
+   "band": "0.5-2",
+   "run_len": 3,
+   "days": 1200,
+   "recall": 0.0625,
+   "imputed_over_true": 0.9427847922424719
+  },
+  {
+   "band": "0.5-2",
+   "run_len": 7,
+   "days": 2800,
+   "recall": 0.4975,
+   "imputed_over_true": 0.9912203385800756
+  },
+  {
+   "band": "0.5-2",
+   "run_len": 14,
+   "days": 5600,
+   "recall": 0.92,
+   "imputed_over_true": 1.0111484889675717
+  },
+  {
+   "band": "2-5",
+   "run_len": 1,
+   "days": 400,
+   "recall": 0.04,
+   "imputed_over_true": 1.003995624756714
+  },
+  {
+   "band": "2-5",
+   "run_len": 3,
+   "days": 1200,
+   "recall": 0.4375,
+   "imputed_over_true": 0.9862467524313231
+  },
+  {
+   "band": "2-5",
+   "run_len": 7,
+   "days": 2800,
+   "recall": 0.9625,
+   "imputed_over_true": 0.9685330858631457
+  },
+  {
+   "band": "2-5",
+   "run_len": 14,
+   "days": 5600,
+   "recall": 0.9975,
+   "imputed_over_true": 0.995554665148734
+  },
+  {
+   "band": "5-inf",
+   "run_len": 1,
+   "days": 400,
+   "recall": 0.2125,
+   "imputed_over_true": 1.0226702570090582
+  },
+  {
+   "band": "5-inf",
+   "run_len": 3,
+   "days": 1200,
+   "recall": 0.8625,
+   "imputed_over_true": 1.0060912314685742
+  },
+  {
+   "band": "5-inf",
+   "run_len": 7,
+   "days": 2800,
+   "recall": 0.995,
+   "imputed_over_true": 0.996754618818883
+  },
+  {
+   "band": "5-inf",
+   "run_len": 14,
+   "days": 5600,
+   "recall": 1.0,
+   "imputed_over_true": 0.9494689988998756
+  }
+ ],
+ "null": [
+  {
+   "band": "0-0.5",
+   "mean": 0.01980192442793297,
+   "count": 53
+  },
+  {
+   "band": "0.5-2",
+   "mean": 0.007604830026212276,
+   "count": 262
+  },
+  {
+   "band": "2-5",
+   "mean": 0.004197941441623051,
+   "count": 122
+  },
+  {
+   "band": "5-inf",
+   "mean": 0.0017661077080651777,
+   "count": 59
+  }
+ ]
+}

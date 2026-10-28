@@ -1,0 +1,71 @@
+# Project A — every assumption lives here so it can be changed live.
+# Day indices follow M5: d_1 = 2011-01-29. Arrays in code are 0-based: index = d - 1.
+
+paths:
+  data_dir: data            # sales_train_evaluation.csv, sell_prices.csv, calendar.csv
+  cache_dir: cache          # derived arrays (gitignored)
+  out_dir: project_a        # forecasts.parquet etc.
+  reports_dir: reports
+
+scope:
+  state: CA
+  category: FOODS
+  departments: [FOODS_1, FOODS_2, FOODS_3]
+  stores: [CA_1, CA_2, CA_3, CA_4]
+
+calendar:
+  default_cutoff: 1885      # last day of training data (d_1885); test = cutoff+1 ...
+  test_days: 56
+  last_data_day: 1941       # sales exist through d_1941
+  forecast_horizon: 28      # brief asks for 28-day-ahead quantiles
+  refit_every: 28           # re-forecast inside the replay every N days (decision §13.5)
+  backtest_cutoffs: [1801, 1829, 1857]
+
+costs:
+  holding_rate_annual: 0.25 # x selling price per unit-year
+  lost_sale_rate: 0.35      # x selling price per unit of unmet demand
+  po_fixed: 50.0            # $ per department per purchase order
+  transfer_per_unit: 0.05   # $ per unit DC -> store
+  hold_in_transit: false    # decision §13.3: holding charged on on-hand only
+
+lead_times:
+  supplier_mean_days: {FOODS_1: 5, FOODS_2: 7, FOODS_3: 10}
+  supplier_cv: 0.4          # lognormal; sigma^2 = ln(1+cv^2)
+  dc_to_store_days: 2
+  dc_order_weekday: Monday  # DC places POs only on this weekday
+
+capacity:
+  dc_outbound_multiple: 1.25    # x avg daily CA FOODS sales
+  dc_outbound_window_days: 365  # last N training days for that average
+  store_cap_days: 21            # store on-hand+inbound <= N x item avg daily sales (decision §13.4)
+  initial_stock_days: 7         # every location incl. DC starts with N days (decision §13.2)
+  avg_sales_window_days: 28     # "average daily sales" = mean of recovered demand over last N days
+  initial_pipeline: false
+
+fill_rate:
+  target: 0.95
+  definition: network_units     # units sold / units demanded, all stores x items x days (decision §13.1)
+
+recovery:
+  # zero-run stockout detector (see src/demand_recovery.py)
+  neighbour_window_days: 56     # days either side of a zero run used to estimate the local rate
+  min_neighbour_days: 14        # fewer clean neighbour days -> can't judge, leave as genuine zero
+  p_threshold: 0.001            # flag run if P(run of zeros | local NB rate) < this (tuned: injection + null tests)
+  passes: 2                     # re-estimate local rates excluding flagged runs
+  dormant_days: 56             # zero run this long = not replenished for months -> treat as not ranged
+  dispersion_clip: [0.5, 50.0]  # NB size parameter r bounds
+  store_disruption_ratio: 0.5   # store-day total < ratio x local expected -> store-wide disruption
+  closed_ratio: 0.05            # store-day total < ratio x expected -> store closed
+  injection:
+    n_per_band: 400             # synthetic stockouts injected per velocity band
+    lengths: [1, 3, 7, 14]
+    seed: 7
+
+prices:
+  use_future_prices: false      # decision §13.6: carry forward last known price after cutoff
+
+simulation:
+  n_sims: 100
+  seed: 2026
+
+seed: 42
