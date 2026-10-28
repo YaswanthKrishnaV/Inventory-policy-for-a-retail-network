@@ -1,0 +1,29 @@
+flowchart LR
+  S["Season & trend<br/>(time)"]:::conf
+  C["Competitor sales"]:::conf
+  E["Sentiment"]:::conf
+  P["Paid media 0–4<br/>(spend = impressions × fixed CPM)"]:::treat
+  O["Organic impressions"]:::med
+  R["Promo"]:::treat
+  Y["Conversions<br/>(per capita)"]:::out
+  V["Revenue = conversions × revenue/conv."]:::out
+  N["Population"]:::scale
+  S --> P
+  S --> Y
+  S --> E
+  C --> P
+  C --> Y
+  E --> P
+  E --> Y
+  P --> Y
+  P -. "possible mediator" .-> O
+  O --> Y
+  R --> Y
+  Y --> V
+  N -. "scale (per capita)" .-> Y
+  N -. "scale" .-> P
+  classDef treat fill:#cde2fb,stroke:#2a78d6,color:#1f1f1e
+  classDef conf fill:#fde3d6,stroke:#eb6834,color:#1f1f1e
+  classDef med fill:#fff1cc,stroke:#eda100,color:#1f1f1e
+  classDef out fill:#d4f1e5,stroke:#1baf7a,color:#1f1f1e
+  classDef scale fill:#f0efec,stroke:#6b6a63,color:#1f1f1e

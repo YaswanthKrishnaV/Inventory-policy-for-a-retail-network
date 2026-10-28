@@ -35,11 +35,6 @@ class Posterior:
     extra: dict | None = None
 
 
-def _chol_solve(L, b):
-    return np.linalg.solve(L.transpose(0, 2, 1) if L.ndim == 3 else L.T,
-                           np.linalg.solve(L, b))
-
-
 def posterior(Z, W, y, mask, sigma, mu_u, lam_u, mu_s, lam_s, extra=None, want_logml=True) -> Posterior:
     """Z (G,T,p), W (G,T,q), y (G,T), mask (G,T) bool (rows in the likelihood), sigma (G,),
     mu_u/lam_u (G,p), mu_s/lam_s (q,). extra: dict(a_u (G,p), a_s (q,), obs, se) for one
@@ -54,7 +49,7 @@ def posterior(Z, W, y, mask, sigma, mu_u, lam_u, mu_s, lam_s, extra=None, want_l
     C = np.einsum("gtq,gtr->qr", W * w[:, :, None], W) + np.diag(lam_s)
     c = np.einsum("gtq,gt->q", W * w[:, :, None], y) + lam_s * mu_s
     L = np.linalg.cholesky(A)
-    Ainv_B = np.stack([np.linalg.solve(L[g].T, np.linalg.solve(L[g], B[g])) for g in range(G)]) if G <= 0 else _batched_solve(L, B)
+    Ainv_B = _batched_solve(L, B)
     Ainv_a = _batched_solve(L, a[:, :, None])[:, :, 0]
     S = C - np.einsum("gpq,gpr->qr", B, Ainv_B)
     rs = c - np.einsum("gpq,gp->q", B, Ainv_a)
