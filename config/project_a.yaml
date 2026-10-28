@@ -19,7 +19,8 @@ calendar:
   last_data_day: 1941       # sales exist through d_1941
   forecast_horizon: 28      # brief asks for 28-day-ahead quantiles
   refit_every: 28           # re-forecast inside the replay every N days (decision §13.5)
-  backtest_cutoffs: [1801, 1829, 1857]
+  backtest_cutoffs: [1801, 1829, 1857]   # 28-day forecast backtests (windows end <= d_1885)
+  tuning_offsets: [56, 84, 112]         # policy knobs tuned on 56-day replays at cutoff - offset (end <= cutoff)
 
 costs:
   holding_rate_annual: 0.25 # x selling price per unit-year
@@ -74,6 +75,10 @@ forecast:
   n_paths: 500                  # sample paths per series (DC paths = sums of store paths)
   dispersion_bins: [0, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16, 1.0e9]   # daily-mean bands for NB 1/r
   item_bins: [0, 10, 30, 100, 300, 1000, 1.0e9]                  # 28-day item network volume bands for s_p^2
+  adjust:                       # post-model corrections measured on the out-of-sample calibration window (D-24)
+    level_shrink: 0.5           # apply half of the store x dept actual/forecast ratio
+    level_clip: [0.85, 1.2]
+    dormant_resume: true        # dormant-at-origin items forecast at pre-dormancy rate x empirical resume factor
 
 policy:
   extend_days: 42               # forecast means extended by weekday pattern beyond 28 days (DC protection interval)
@@ -85,6 +90,16 @@ policy:
     prebuild: true              # pre-ship ahead of days where the DC outbound cap would bind
     lookahead_days: 6
     cap_eta: 0.97               # plan to use at most this share of outbound capacity
+
+tuning:
+  n_sims: 6                     # Monte Carlo runs per knob setting per tuning cutoff
+  fill_margin: 0.005            # require mean fill >= target + margin on every tuning cutoff
+  penalty_per_point: 20000      # $ penalty per fill-rate point below that
+  rounds: 2
+  grid:
+    alpha_store: [0.90, 0.95, 0.97, 0.99, 0.995]
+    beta_dc: [0.90, 0.95, 0.97, 0.99, 0.995]
+    store_window: [2, 3, 4, 5]
 
 simulation:
   n_sims: 100

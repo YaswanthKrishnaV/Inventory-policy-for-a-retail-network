@@ -85,14 +85,65 @@ class _Block:
             dc[a:a + s] = rng.poisson(lam).reshape(s, N // 4, 4, T).sum(2)
         self.dc_cum = np.concatenate([np.zeros((S, N // 4, 1), np.int32), np.cumsum(dc, 2, dtype=np.int32)], 2)
 
-    def window(self, a: int, b: int):
-        """Mean and variance of store demand over block days [a, b)."""
+        self._qt = {}
+
+    def window(self, a, b):
+        """Mean and variance of store demand over block days [a, b) (a, b scalars or arrays)."""
         T = self.mu.shape[1]
         a, b = np.clip(a, 0, T), np.clip(b, 0, T)
         M = self.cmu[:, b] - self.cmu[:, a]
         s2 = self.cmu2s[:, b] - self.cmu2s[:, a]
-        V = M + self.sp * M ** 2 + (1 + self.sp) * s2
+        sp = self.sp if np.ndim(M) == 1 else self.sp[:, None]
+        V = M + sp * M ** 2 + (1 + sp) * s2
         return M, V
+
+    def qtable(self, w: int) -> np.ndarray:
+        """(Q, N, R) demand quantiles at QGRID for the window [rel+1, rel+1+w), every rel day.
+        Built once per (block, window) and reused across days, Monte Carlo runs and knob settings."""
+        if w not in self._qt:
+            R = self.mu.shape[1] - w
+            a = np.arange(R) + 1
+            M, V = self.window(a, a + w)
+            shape = (len(QGRID),) + M.shape
+            self._qt[w] = nb_ppf(np.broadcast_to(QGRID[:, None, None], shape),
+                                 np.broadcast_to(M, shape), np.broadcast_to(V, shape)).astype(np.float32)
+        return self._qt[w]
+
+    def level(self, w: int, rel: int, q: np.ndarray) -> np.ndarray:
+        """Per-series demand quantile at probability q (N,) for the window starting at rel+1."""
+        tab = self.qtable(w)
+        tab = tab[:, :, min(rel, tab.shape[2] - 1)]                 # (Q, N)
+        q = np.clip(q, QGRID[0], QGRID[-1])
+        j = np.clip(np.searchsorted(QGRID, q), 1, len(QGRID) - 1)
+        g0, g1 = QGRID[j - 1], QGRID[j]
+        n = np.arange(tab.shape[1])
+        lo, hi = tab[j - 1, n], tab[j, n]
+        return lo + (q - g0) / (g1 - g0) * (hi - lo)
+
+
+def _round_to_budget(x, cap_each, budget):
+    """Integer shipments: floor, then give the remaining budget to the largest remainders
+    (flooring 5k fractional levels would otherwise strand ~0.5 unit per series of capacity)."""
+    out = np.floor(x)
+    left = int(budget - out.sum())
+    if left > 0:
+        frac = np.where(out < cap_each, x - out, -1.0)
+        order = np.argsort(-frac)[:left]
+        order = order[frac[order] > 0]
+        out[order] += 1
+    return out
+
+
+QGRID = np.array([0.0, 0.3, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.93, 0.95, 0.97, 0.98, 0.99, 0.995, 0.999])
+_BLOCKS: dict = {}
+
+
+def get_block(f, ext, n_paths, seed):
+    """Policy-side block for a forecast, cached so knob searches and MC runs share sample paths."""
+    key = (id(f), ext, n_paths, seed)
+    if key not in _BLOCKS:
+        _BLOCKS[key] = (f, _Block(f, ext, n_paths, seed))
+    return _BLOCKS[key][1]
 
 
 def nb_ppf(q, M, V):
@@ -131,7 +182,7 @@ class RecommendedPolicy:
         self.net, self.cfg = net, cfg
         self.alpha = np.array([k["alpha_store"][d] for d in DEPTS])[net.series_dept]
         self.beta = np.array([k["beta_dc"][d] for d in DEPTS])[net.item_dept]
-        self.blocks = [_Block(f, pc["extend_days"], pc["n_paths_dc"], seed + j) for j, f in enumerate(forecasts)]
+        self.blocks = [get_block(f, pc["extend_days"], pc["n_paths_dc"], seed + j) for j, f in enumerate(forecasts)]
         self.block_start = [f.origin - net.start for f in forecasts]   # test-day index where each block starts
         self.price = net.price_store
         self.lt_rng = np.random.default_rng(seed + 99)
@@ -146,10 +197,8 @@ class RecommendedPolicy:
     # ------------------------------------------------------------------ store side
     def _store_targets(self, st):
         b, rel = self._block(st.day)
-        w = self.k["store_window"]
         # IP after today's order must cover demand on days day+1 .. day+w
-        M, V = b.window(rel + 1, rel + 1 + w)
-        T = nb_ppf(self.alpha, M, V)
+        T = b.level(self.k["store_window"], rel, self.alpha)
         return T, b, rel
 
     def _prebuild(self, st, b, rel):
@@ -172,7 +221,7 @@ class RecommendedPolicy:
         weight = b.mu[:, days].sum(1)
         return extra * weight / max(weight.sum(), 1e-9)
 
-    def _allocate(self, st, req, ip, b, rel):
+    def _allocate(self, st, req, ip, b, rel, extra):
         """Cap total shipments at the DC outbound limit and at DC stock, by marginal value."""
         net = self.net
         I = net.n_items
@@ -185,20 +234,17 @@ class RecommendedPolicy:
             return req
         # water-filling: ship to series i up to level x_i(lam) where price_i * P(D > x) >= lam
         w = self.k["store_window"]
-        M, V = b.window(rel + 1, rel + 1 + w)
-        p = self.price[:, st.day]
+        p = np.maximum(self.price[:, st.day], 1e-6)
         lo, hi = 0.0, float(p.max())
         for _ in range(30):
             lam = (lo + hi) / 2
-            q = np.clip(1 - lam / np.maximum(p, 1e-6), 0, 0.9999)
-            lvl = nb_ppf(q, M, V)
-            ship = np.clip(lvl - ip, 0, req)
+            ship = np.clip(b.level(w, rel, 1 - lam / p) + extra - ip, 0, req)
             if ship.sum() > C:
                 lo = lam
             else:
                 hi = lam
-        q = np.clip(1 - hi / np.maximum(p, 1e-6), 0, 0.9999)
-        return np.floor(np.clip(nb_ppf(q, M, V) - ip, 0, req))
+        x = np.clip(b.level(w, rel, 1 - hi / p) + extra - ip, 0, req)
+        return _round_to_budget(x, req, C)
 
     # ------------------------------------------------------------------ DC side
     def _dc_order(self, st):
@@ -228,12 +274,11 @@ class RecommendedPolicy:
     # ------------------------------------------------------------------ main
     def __call__(self, st):
         T, b, rel = self._store_targets(st)
-        if self.k["prebuild"]:
-            T = T + self._prebuild(st, b, rel)
-        T = np.minimum(T, self.net.store_cap)
+        extra = self._prebuild(st, b, rel) if self.k["prebuild"] else np.zeros(self.net.n_series)
+        T = np.minimum(T + extra, self.net.store_cap)
         ip = st.store_on_hand + st.store_inbound.sum(1)
         req = np.maximum(np.ceil(T - ip), 0)
-        tr = self._allocate(st, req, ip, b, rel)
+        tr = self._allocate(st, req, ip, b, rel, extra)
         po = self._dc_order(st) if st.is_order_day else None
         return Orders(tr, po)
 
@@ -253,7 +298,9 @@ def build_forecasts(panel, net, cfg, log=print, model=None):
     while step and o < net.start + net.days:
         rec = dr.recover(panel, o, cfg)
         mu = fc.predict_mean(model, panel, rec, o, H, cfg)
-        blocks.append(fc.Forecast(o, H, mu, f0.disp))
+        if f0.adj is not None:
+            mu = fc.apply_adjustments(mu, f0.adj, panel, rec, o, cfg)
+        blocks.append(fc.Forecast(o, H, mu, f0.disp, adj=f0.adj))
         o += step
     return blocks, model
 

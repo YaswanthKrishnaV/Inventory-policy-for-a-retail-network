@@ -248,3 +248,36 @@ DC level: recovered bias 1.098 / 1.095 / 1.042, 90% coverage 0.93 / 0.94 / 0.94;
 - DC outbound capacity cut the baseline's shipments on ~47 of 56 days; DC stock-outs on ~6–8k item-days (no initial pipeline + FOODS_3 lead time).
 - **Replaying recorded sales as demand** (ignoring censoring in the test window) would report the same baseline at fill 0.90 and cost ~$110k — i.e. ~20% too optimistic. Confirms D-22's censored-day treatment matters.
 - Simulator speed: ~0.2 s per 56-day run → 100 runs in ~20 s.
+
+### A-13 · Why the first forecast under-forecast (diagnosis at d_1829, d_1857)
+- Items **dormant at the origin** (forecast 0) produced 1.8% / 2.3% of next-28-day uncensored demand → ~2 points of the bias. In the simulator that is ~$12k of lost-sale cost (~10% of the total).
+- Bias grows with horizon week: d_1829 weeks 1–4 = 1.01 / 1.09 / 1.12 / 1.12 → recent upward trend that lag ≥ 28 features cannot see. At d_1857 week 4 (Easter week) = 1.12.
+- Out-of-sample calibration-window bias (model refit 28 days earlier) was 1.089 / 1.077 — a usable signal of current under-forecasting.
+- Store × dept level correction from that window: shrink 0.5 → bias 1.036 / 0.995 (from 1.083 / 1.036); WAPE +0.4–0.8% worse. Full correction overshoots (0.994 / 0.957).
+
+### D-24 · Post-model adjustments (measured only on the 28 days before the origin)
+- **Level:** multiply by `1 + 0.5 × (actual/forecast − 1)` per store × dept from the calibration window, clipped to [0.85, 1.2]. Half-strength because full strength overshoots and trends don't persist fully. Bias matters more than WAPE here: under-forecasting costs ~500× more than over-forecasting.
+- **Dormant resume:** dormant-at-origin items (still priced) are forecast at `resume × pre-dormancy daily rate`, where `resume` = share of their pre-dormancy rate that dormant items actually sold in the calibration window. Measured values: 0.11 (d_1801), 0.49 (d_1885) — volatile, but zero is clearly wrong.
+- Config `forecast.adjust`; both can be turned off for ablation.
+
+### D-25 · Forecast cache and tuning cutoffs
+- Fitted models + forecasts cached by (origin, forecast/recovery/price config, seed) → backtest, tuning and final run share fits.
+- **Policy tuning cutoffs = cutoff − 56/84/112** (d_1829, d_1801, d_1773 for d_1885): each 56-day tuning replay ends on or before the cutoff. (The forecast backtest's d_1857 cutoff cannot be used for 56-day replays — it would run into the test window.)
+
+## 2026-10-28 — Recommended policy (Task 4), first runs at d_1885
+
+### A-14 · Recommended policy vs baseline, default knobs (α = β = 0.97, store window 3, pre-build on)
+- 2 runs: cost **$80–83k**, fill **0.964–0.968**, zero rule violations; baseline ≈ $136–160k, fill 0.84–0.87.
+- Cost mix: transfers $34.5k (≈ fixed: $0.05 × units sold), lost $21–23k, DC holding $16–17k, store holding $7k, POs $1.2k. Ending inventory ~$865k (CFO note: the policy builds stock because purchase cost isn't in the objective — reported, not hidden).
+- Days 6–10 dip to 77–88% fill: DC starts with 7 days, no pipeline, FOODS_3 lead ≈ 10 days. Largely forced by the starting rules.
+- Outbound at the 13,442 cap on most days → capacity really is the binding constraint.
+
+### A-15 · Policy engineering bugs found and fixed
+- Speed: scipy NB quantiles every day made one replay take ~38 s → precomputed quantile tables per (forecast block, window) at 15 probability levels, interpolated; ~1 s per replay. Store targets verified identical to the direct computation.
+- **Bug 1:** the capacity allocation capped stores at their quantile level and ignored the pre-build extra → pre-shipping cut exactly when needed. Fixed (allocation level = quantile level + pre-build).
+- **Bug 2:** interpolated levels are fractional; flooring 5,748 shipments stranded ~2,000 units/day of outbound capacity (fill 0.933). Fixed with floor + largest-remainder rounding to the capacity budget.
+- **Mis-diagnosis (mine):** a remaining "gap" (0.952 vs 0.966) turned out to be comparing different Monte Carlo seeds. Like-for-like seeds reproduce 0.964 / 0.968 exactly. Lesson: always compare policies on common random numbers.
+
+### A-16 · Run-to-run spread is large (12 runs, default knobs, d_1885)
+- Fill 0.896–0.974 (mean **0.940**, sd 0.024); cost $76k–$119k (mean $95k). Driven by FOODS_3 (fill 0.869–0.973): **one lead-time draw per PO**, so a single slow FOODS_3 PO (p95 ≈ 17.5 days) starves the DC.
+- At default knobs the policy misses 95% on average → DC protection must go up; tuning uses common random numbers and a fill-rate margin on every tuning cutoff.

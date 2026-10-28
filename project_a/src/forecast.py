@@ -209,16 +209,42 @@ class Forecast:
     disp: Dispersion
     raw: bool = False
     timings: dict = field(default_factory=dict)
+    adj: dict | None = None
 
     def paths(self, n_paths: int, seed: int) -> np.ndarray:
         return sample_paths(self.mu, self.disp, n_paths, np.random.default_rng(seed))
 
 
-def run_forecast(panel, origin: int, cfg: dict, raw: bool = False, model=None, log=print) -> tuple[Forecast, GBM]:
+def _cache_file(origin, cfg, raw):
+    import hashlib, json
+    from .config import path
+    key = json.dumps([cfg["forecast"], cfg["recovery"], cfg["prices"], cfg["calendar"]["forecast_horizon"],
+                      origin, raw, cfg["seed"]], sort_keys=True, default=str)
+    h = hashlib.md5(key.encode()).hexdigest()[:12]
+    return path(cfg, "cache_dir") / f"forecast_{origin}_{'raw' if raw else 'rec'}_{h}.pkl"
+
+
+def run_forecast(panel, origin: int, cfg: dict, raw: bool = False, model=None, log=print,
+                 use_cache: bool = True) -> tuple[Forecast, GBM]:
     """Train (unless `model` given) on data before `origin`, calibrate spread, forecast H days.
 
     origin is a 0-based day index: data with t < origin is observed. For cutoff d_c, origin = c.
+    Results are cached in cache/ keyed by origin + forecast/recovery config, so the backtest,
+    tuning and final run share fitted models.
     """
+    import pickle
+    cf = _cache_file(origin, cfg, raw)
+    if use_cache and model is None and cf.exists():
+        f, m = pickle.loads(cf.read_bytes())
+        log(f"  forecast origin d_{origin + 1}: loaded from cache")
+        return f, m
+    f, m = _run_forecast(panel, origin, cfg, raw, model, log)
+    if use_cache:
+        cf.write_bytes(pickle.dumps((f, m)))
+    return f, m
+
+
+def _run_forecast(panel, origin, cfg, raw, model, log):
     H = cfg["calendar"]["forecast_horizon"]
     tm = {}
     t0 = time.time()
@@ -237,6 +263,57 @@ def run_forecast(panel, origin: int, cfg: dict, raw: bool = False, model=None, l
     disp = estimate_dispersion(mu_c, y_c, ok_c, cfg)
     tm["calibrate"] = time.time() - t0
     mu = predict_mean(model, panel, rec, origin, H, cfg, raw=raw)
+    adj = estimate_adjustments(panel, rec_c, rec, cal_origin, origin, mu_c, cfg, raw=raw)
+    mu = apply_adjustments(mu, adj, panel, rec, origin, cfg, raw=raw)
+    disp.diag.update(adj["diag"])
     log(f"  forecast origin d_{origin + 1}: fit {tm['fit']:.0f}s, calibrate {tm['calibrate']:.0f}s, "
-        f"calib bias (actual/forecast) {disp.diag['bias']:.3f}")
-    return Forecast(origin, H, mu, disp, raw, tm), model
+        f"calib bias (actual/forecast) {disp.diag['bias']:.3f}, dormant resume factor {adj['resume']:.3f}")
+    return Forecast(origin, H, mu, disp, raw, tm, adj), model
+
+
+# ----------------------------------------------------------------------------- post-model adjustments
+def _pre_rate(panel, rec, origin, raw):
+    """Mean demand over the last 364 days on days the item was sellable (NaN-aware)."""
+    Y = demand_history(panel, rec, raw=raw)[:, max(0, origin - 364):origin]
+    with np.errstate(invalid="ignore"):
+        return np.nan_to_num(np.nanmean(Y, 1))
+
+
+def estimate_adjustments(panel, rec_c, rec, cal_origin, origin, mu_c, cfg, raw=False) -> dict:
+    """Two corrections measured on the out-of-sample calibration window [cal_origin, origin).
+
+    * level: actual / forecast by store x dept (lag>=28 features miss recent trend), shrunk.
+    * resume: series dormant at cal_origin are forecast at 0 by the model, yet some restart;
+      resume = their actual demand in the window / (their pre-dormancy daily rate x H).
+    """
+    ac = cfg["forecast"]["adjust"]
+    H = origin - cal_origin
+    y = rec.demand[:, cal_origin:origin]
+    ok = rec.status[:, cal_origin:origin] == dr.OK
+    dorm_c = rec_c.status[:, cal_origin - 1] == dr.DORMANT
+    groups = (panel.meta["store_id"] + "|" + panel.meta["dept_id"]).to_numpy()
+    level = np.ones(len(groups), np.float32)
+    ratios = {}
+    for g in np.unique(groups):
+        r = (groups == g) & ~dorm_c
+        num, den = y[r][ok[r]].sum(), mu_c[r][ok[r]].sum()
+        ratio = num / den if den > 0 else 1.0
+        f = float(np.clip(1 + ac["level_shrink"] * (ratio - 1), *ac["level_clip"]))
+        level[groups == g] = f
+        ratios[g] = round(float(ratio), 3)
+    pre = _pre_rate(panel, rec_c, cal_origin, raw)
+    den = pre[dorm_c].sum() * H
+    resume = float(rec.demand[dorm_c, cal_origin:origin].sum() / den) if den > 0 else 0.0
+    resume = float(np.clip(resume, 0, 1))
+    return dict(level=level, resume=resume if ac["dormant_resume"] else 0.0,
+                diag=dict(level_ratio=ratios, resume_factor=resume))
+
+
+def apply_adjustments(mu, adj, panel, rec, origin, cfg, raw=False):
+    mu = mu * adj["level"][:, None]
+    dorm = rec.status[:, origin - 1] == dr.DORMANT
+    if adj["resume"] > 0 and dorm.any():
+        listed = ~np.isnan(panel.price[:, origin - 1])
+        pre = _pre_rate(panel, rec, origin, raw)
+        mu[dorm & listed] = (adj["resume"] * pre[dorm & listed])[:, None]
+    return mu.astype(np.float32)

@@ -59,9 +59,25 @@ def score(paths: np.ndarray, mu: np.ndarray, y: np.ndarray, ok: np.ndarray, qs, 
     mdc = mu.reshape(N // 4, 4, H).sum(1)
     qdc = fc.quantiles(fc.to_dc(paths), qs)
     out["dc"] = _metrics(ydc[ok4], mdc[ok4], qdc[:, ok4], qs)
-    out["coverage_curve_store"] = [float((yv <= qv[k]).mean()) for k in range(len(qs))]
-    out["coverage_curve_dc"] = [float((ydc[ok4] <= qdc[k][ok4]).mean()) for k in range(len(qs))]
+    out["coverage_curve_store"] = pit_curve(paths[:, ok], yv, qs)
+    out["coverage_curve_dc"] = pit_curve(fc.to_dc(paths)[:, ok4], ydc[ok4], qs)
     return out
+
+
+def pit_curve(samples: np.ndarray, y: np.ndarray, qs, chunk: int = 20000) -> list:
+    """Randomised PIT for count data: u ~ U(F(y-1), F(y)); returns P(u <= q) for each q.
+
+    A plain "share of actuals <= quantile" curve is distorted for small counts (40% of store-days
+    are zero, so even a perfect forecast shows 40% at q=0.05). Calibrated => on the diagonal."""
+    qs = np.asarray(qs)
+    acc = np.zeros(len(qs))
+    for a in range(0, len(y), chunk):
+        s, yy = samples[:, a:a + chunk], y[a:a + chunk]
+        lo = (s < yy[None]).mean(0)
+        hi = (s <= yy[None]).mean(0)
+        w = np.maximum(hi - lo, 1e-12)
+        acc += np.clip((qs[:, None] - lo[None]) / w[None], 0, 1).sum(1)
+    return (acc / len(y)).tolist()
 
 
 def _metrics(y, mu, q, qs) -> dict:
@@ -155,7 +171,7 @@ def write_report(results, cfg):
             ax.spines[s].set_visible(False)
         ax.tick_params(colors=MUTED, labelsize=8)
         ax.grid(color=GRID, lw=0.6)
-    axes[0].set_ylabel("share of actuals below quantile", fontsize=8, color=MUTED)
+    axes[0].set_ylabel("randomised PIT: P(u <= q)", fontsize=8, color=MUTED)
     axes[0].legend(frameon=False, fontsize=8)
     fig.suptitle("Quantile calibration, mean over backtest cutoffs (on the diagonal = calibrated)", fontsize=10, x=0.02, ha="left")
     fig.tight_layout()
